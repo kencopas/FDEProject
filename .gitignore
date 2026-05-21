@@ -1,0 +1,83 @@
+# -----------------------------
+# OS / Editor
+# -----------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# -----------------------------
+# Env / Secrets
+# -----------------------------
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# -----------------------------
+# Node / Next.js
+# -----------------------------
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+.next/
+out/
+build/
+dist/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# -----------------------------
+# Python / FastAPI
+# -----------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.tox/
+.nox/
+.hypothesis/
+
+# Coverage / test artifacts
+.coverage
+.coverage.*
+htmlcov/
+
+# Packaging
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+
+# Type checkers / notebooks
+.dmypy.json
+.ipynb_checkpoints/
+
+# Local DB/files often used in FastAPI dev
+*.sqlite3
+*.db
+
+# -----------------------------
+# Optional project-local folders
+# -----------------------------
+# Uncomment if these are generated in your repo
+# uploads/
+# media/

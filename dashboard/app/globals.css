@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --btn-bg: #be123c;
+  --btn-bg-hover: #9f1239;
+  --btn-text: #fffdf9;
+  --input-border: #fecdd3;
+  --input-bg: #fff7ed;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Avenir Next", "Trebuchet MS", "Gill Sans", sans-serif;
+}
+
+.api-btn {
+  border: 1px solid transparent;
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, var(--btn-bg), #c2410c);
+  color: var(--btn-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 0.7rem 1rem;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+  box-shadow: 0 12px 24px -16px rgba(190, 24, 93, 0.75);
+}
+
+.api-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--btn-bg-hover), #9a3412);
+  transform: translateY(-1px);
+}
+
+.api-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.api-input {
+  width: 100%;
+  border: 1px solid var(--input-border);
+  border-radius: 0.85rem;
+  background: var(--input-bg);
+  color: #1c1917;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  padding: 0.7rem 0.85rem;
+  transition: border-color 180ms ease;
+}
+
+.api-input:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.2);
+}
+
+main {
+  animation: page-rise 380ms ease-out;
+}
+
+@keyframes page-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
