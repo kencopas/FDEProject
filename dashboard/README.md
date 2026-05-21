@@ -56,27 +56,63 @@ import { createCampaignApiClient } from "@/lib/campaign-api-client";
 const client = createCampaignApiClient();
 
 const health = await client.health();
-const campaigns = await client.listCampaigns({
+const campaignList = await client.listCampaigns({
   page: 1,
   pageSize: 10,
   status: "active",
 });
-const campaign = await client.getCampaign("campaign-id");
+const campaign = await client.getCampaign(campaignList.campaigns[0].id);
 await client.nextDay();
 const docs = await client.apiDocs();
 ```
 
-## API Playground UI
+## Campaign Dashboard UI
 
-The home page now includes an interactive API playground at `app/page.tsx`.
+The home page in `app/page.tsx` is a campaign dashboard UI.
 
-It can execute:
+It uses these API calls:
 
-- `GET /health`
-- `POST /next-day`
 - `GET /campaigns` with page, page_size, and status filters
-- `GET /campaigns/{campaign_id}`
-- `GET /api-docs`
+- `GET /campaigns/{campaign_id}` for campaign detail (triggered internally when a campaign card is clicked)
+
+### UX Behavior
+
+- Campaign cards are rendered from `GET /campaigns`.
+- Clicking a campaign card opens a modal with detailed campaign information.
+- There is no direct campaign ID search field in the UI.
+
+### Resilience
+
+- Every dashboard request uses a per-attempt timeout of 3 seconds.
+- Requests are retried automatically on transient failures.
+- Current retry policy in `app/page.tsx`:
+  - Retries: `3` (up to `4` total attempts including the initial attempt)
+  - Retries happen for timeouts, network errors, and retriable HTTP responses (`408`, `429`, and `5xx`)
+
+### Client-Side Validation
+
+Before `GET /campaigns` is called, input values are validated in the browser:
+
+- `page` must be an integer >= 1
+- `page_size` must be an integer between 1 and 10
+- `status` must be blank or one of:
+  - `active`
+  - `paused`
+  - `completed`
+
+### Metrics and Counts
+
+Top dashboard metrics are derived from the currently loaded `campaigns[]` list on the client:
+
+- Total Budget: sum of `campaign.budget`
+- Total Spend: sum of `campaign.spend`
+- Impressions: sum of `campaign.impressions`
+- Portfolio CTR: `(sum(clicks) / sum(impressions)) * 100`
+
+Count display in the campaign list header:
+
+- `shown` = number of cards rendered on the current response page
+- `total` = normalized API `total` value from the list response
 
 ### How It Works
 
