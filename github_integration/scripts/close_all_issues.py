@@ -1,10 +1,9 @@
 from __future__ import annotations
-
+from typing import Any
 import asyncio
 import os
 import sys
 from pathlib import Path
-from typing import Any
 
 # Allow running this script directly: uv run scripts/close_all_issues.py
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -22,10 +21,7 @@ BATCH_SIZE = 10
 logger = get_logger(__name__)
 
 
-def _batched(items: list[int], batch_size: int) -> list[list[int]]:
-    return [
-        items[index : index + batch_size] for index in range(0, len(items), batch_size)
-    ]
+from utils import batched
 
 
 async def _list_repo_issues(
@@ -113,7 +109,7 @@ async def main() -> None:
         closed_count = 0
         failed_count = 0
 
-        for batch in _batched(issue_numbers, BATCH_SIZE):
+        for batch in batched(issue_numbers, BATCH_SIZE):
             results = await asyncio.gather(
                 *[
                     _close_issue(

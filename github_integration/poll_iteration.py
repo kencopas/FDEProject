@@ -11,6 +11,7 @@ from campaign_api.service import (
     campaigns_over_threshold,
     fetch_all_campaigns,
 )
+from utils import batched
 from github_api.service import (
     build_issue_body,
     build_issue_title,
@@ -19,12 +20,6 @@ from github_api.service import (
 
 logger = get_logger(__name__)
 ISSUE_CREATION_BATCH_SIZE = 5
-
-
-def _batched[T](items: list[T], batch_size: int) -> list[list[T]]:
-    return [
-        items[index : index + batch_size] for index in range(0, len(items), batch_size)
-    ]
 
 
 async def run_poll_iteration(
@@ -49,7 +44,7 @@ async def run_poll_iteration(
         open_titles.add(title)
         to_create.append((title, campaign, utilization))
 
-    for batch in _batched(to_create, ISSUE_CREATION_BATCH_SIZE):
+    for batch in batched(to_create, ISSUE_CREATION_BATCH_SIZE):
         tasks = [
             github_client.create_issue(
                 owner=owner,

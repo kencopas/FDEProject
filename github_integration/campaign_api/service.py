@@ -14,10 +14,7 @@ def campaign_name(campaign: Campaign) -> str:
     return campaign.name.strip() if campaign.name.strip() else "Unnamed"
 
 
-def _batched(items: list[int], batch_size: int) -> list[list[int]]:
-    return [
-        items[index : index + batch_size] for index in range(0, len(items), batch_size)
-    ]
+from utils import batched
 
 
 async def fetch_all_campaigns(
@@ -41,7 +38,7 @@ async def fetch_all_campaigns(
     total_pages = math.ceil(total / page_size)
     remaining_pages = list(range(2, total_pages + 1))
 
-    for page_group in _batched(remaining_pages, batch_size):
+    for page_group in batched(remaining_pages, batch_size):
         responses = await asyncio.gather(
             *[
                 client.list_campaigns(page=page, page_size=page_size)
