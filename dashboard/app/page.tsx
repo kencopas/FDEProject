@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Campaign = {
   id: string;
@@ -37,12 +37,29 @@ const initialDashboardState: DashboardState = {
   loading: false,
 };
 
-const REQUEST_TIMEOUT_MS = 3000;
+const REQUEST_TIMEOUT_MS = 1000;
 const REQUEST_RETRIES = 3;
-const MAX_PAGE_SIZE = 10;
+const MAX_SIMULATION_DAY = 5;
+const CAMPAIGNS_PER_PAGE = 10;
 const VALID_STATUSES = ["active", "paused", "completed"] as const;
+const STATUS_FILTER_OPTIONS = ["all", ...VALID_STATUSES] as const;
+const SORT_FIELDS = [
+  "name",
+  "advertiser",
+  "status",
+  "budget",
+  "spend",
+  "impressions",
+  "clicks",
+  "cpm",
+  "start_date",
+  "end_date",
+] as const;
 
 type ValidStatus = (typeof VALID_STATUSES)[number];
+type StatusFilterOption = (typeof STATUS_FILTER_OPTIONS)[number];
+type CampaignSortField = (typeof SORT_FIELDS)[number];
+type SortDirection = "asc" | "desc";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -77,6 +94,71 @@ function isRetriableStatus(status: number): boolean {
   return status === 408 || status === 429 || status >= 500;
 }
 
+function extractSimulationDay(payload: unknown): number | undefined {
+  if (typeof payload !== "object" || payload === null) {
+    return undefined;
+  }
+
+  const candidates = [
+    "day",
+    "current_day",
+    "simulation_day",
+    "currentDay",
+    "simulationDay",
+  ] as const;
+
+  for (const key of candidates) {
+    if (!(key in payload)) {
+      continue;
+    }
+
+    const value = (payload as Record<string, unknown>)[key];
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return Math.trunc(value);
+    }
+
+    if (typeof value === "string" && /^\d+$/.test(value.trim())) {
+      return Number(value.trim());
+    }
+  }
+
+  return undefined;
+}
+
+function extractCampaignsOverThreshold(payload: unknown): number | undefined {
+  if (typeof payload !== "object" || payload === null) {
+    return undefined;
+  }
+
+  const candidates = [
+    "campaigns_over_threshold",
+    "over_threshold_campaigns",
+    "campaignsOverThreshold",
+    "overThresholdCampaigns",
+  ] as const;
+
+  for (const key of candidates) {
+    if (!(key in payload)) {
+      continue;
+    }
+
+    const value = (payload as Record<string, unknown>)[key];
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return Math.max(0, Math.trunc(value));
+    }
+
+    if (Array.isArray(value)) {
+      return value.length;
+    }
+  }
+
+  return undefined;
+}
+
+function containerReachabilityHint(): string {
+  return "Network error: unable to reach the Campaign API container. Verify the container is running and reachable from this app.";
+}
+
 async function requestJsonWithResilience<T>(
   endpoint: string,
   init: RequestInit,
@@ -107,6 +189,10 @@ async function requestJsonWithResilience<T>(
           continue;
         }
 
+        if (isRetriableStatus(response.status)) {
+          throw new Error(`${message} ${containerReachabilityHint()}`);
+        }
+
         throw new Error(message);
       }
 
@@ -120,8 +206,10 @@ async function requestJsonWithResilience<T>(
 
       if (timedOut) {
         lastError = new Error(
-          `Request timed out after 3 seconds (${REQUEST_RETRIES + 1} attempts). Please try again.`,
+          `Request timed out after 1 second (${REQUEST_RETRIES + 1} attempts). ${containerReachabilityHint()}`,
         );
+      } else if (retriableNetworkError) {
+        lastError = new Error(containerReachabilityHint());
       } else {
         lastError =
           error instanceof Error ? error : new Error(fallbackErrorMessage);
@@ -137,63 +225,6 @@ async function requestJsonWithResilience<T>(
   }
 
   throw lastError ?? new Error(fallbackErrorMessage);
-}
-
-type ValidFilters = {
-  page: number;
-  pageSize: number;
-  status?: ValidStatus;
-};
-
-function validateFilters(
-  rawPage: string,
-  rawPageSize: string,
-  rawStatus: string,
-): { values?: ValidFilters; error?: string } {
-  const pageTrimmed = rawPage.trim();
-  const pageSizeTrimmed = rawPageSize.trim();
-  const statusTrimmed = rawStatus.trim().toLowerCase();
-
-  if (!/^\d+$/.test(pageTrimmed)) {
-    return { error: "Page must be a whole number greater than or equal to 1." };
-  }
-
-  if (!/^\d+$/.test(pageSizeTrimmed)) {
-    return {
-      error: `Page size must be a whole number between 1 and ${MAX_PAGE_SIZE}.`,
-    };
-  }
-
-  const parsedPage = Number(pageTrimmed);
-  const parsedPageSize = Number(pageSizeTrimmed);
-
-  if (!Number.isInteger(parsedPage) || parsedPage < 1) {
-    return { error: "Page must be a whole number greater than or equal to 1." };
-  }
-
-  if (
-    !Number.isInteger(parsedPageSize) ||
-    parsedPageSize < 1 ||
-    parsedPageSize > MAX_PAGE_SIZE
-  ) {
-    return {
-      error: `Page size must be a whole number between 1 and ${MAX_PAGE_SIZE}.`,
-    };
-  }
-
-  if (statusTrimmed && !VALID_STATUSES.includes(statusTrimmed as ValidStatus)) {
-    return {
-      error: `Status must be one of: ${VALID_STATUSES.join(", ")} (or left blank).`,
-    };
-  }
-
-  return {
-    values: {
-      page: parsedPage,
-      pageSize: parsedPageSize,
-      status: statusTrimmed ? (statusTrimmed as ValidStatus) : undefined,
-    },
-  };
 }
 
 function formatCurrency(value: number) {
@@ -221,10 +252,24 @@ function formatDate(value: string) {
   }).format(parsed);
 }
 
+function isOverBudgetThreshold(campaign: Campaign): boolean {
+  return campaign.budget > 0 && campaign.spend / campaign.budget >= 0.9;
+}
+
 export default function Home() {
-  const [page, setPage] = useState("1");
-  const [pageSize, setPageSize] = useState("10");
-  const [status, setStatus] = useState("");
+  const [simulationDay, setSimulationDay] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<StatusFilterOption>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState<CampaignSortField>("spend");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [hideOverNinetyPercentBudget, setHideOverNinetyPercentBudget] =
+    useState(false);
+  const [advancingDay, setAdvancingDay] = useState(false);
+  const [advanceDayMessage, setAdvanceDayMessage] = useState<string>();
+  const [campaignsOverThreshold, setCampaignsOverThreshold] = useState<
+    number | undefined
+  >();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>();
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign>();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -234,25 +279,60 @@ export default function Home() {
     initialDashboardState,
   );
 
-  const campaigns = dashboardState.list?.campaigns ?? [];
-  const shownCampaignCount = campaigns.length;
-  const totalCampaignCount =
-    dashboardState.list &&
-    Number.isFinite(dashboardState.list.total) &&
-    dashboardState.list.total >= 0
-      ? Math.trunc(dashboardState.list.total)
-      : shownCampaignCount;
-  const totalPages = dashboardState.list
-    ? Math.max(
-        1,
-        Math.ceil(
-          totalCampaignCount / Math.max(1, dashboardState.list.page_size),
-        ),
-      )
-    : "-";
+  const campaigns = useMemo(
+    () => dashboardState.list?.campaigns ?? [],
+    [dashboardState.list?.campaigns],
+  );
+  const filteredCampaigns = useMemo(() => {
+    const loweredSearchQuery = searchQuery.trim().toLowerCase();
+
+    return campaigns.filter((campaign) => {
+      if (hideOverNinetyPercentBudget && isOverBudgetThreshold(campaign)) {
+        return false;
+      }
+
+      if (loweredSearchQuery) {
+        const haystack =
+          `${campaign.id} ${campaign.name} ${campaign.advertiser}`.toLowerCase();
+        if (!haystack.includes(loweredSearchQuery)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [campaigns, searchQuery, hideOverNinetyPercentBudget]);
+  const sortedCampaigns = useMemo(() => {
+    const direction = sortDirection === "asc" ? 1 : -1;
+    const ordered = [...filteredCampaigns];
+
+    ordered.sort((left, right) => {
+      const leftValue = left[sortField];
+      const rightValue = right[sortField];
+
+      if (typeof leftValue === "number" && typeof rightValue === "number") {
+        return (leftValue - rightValue) * direction;
+      }
+
+      return String(leftValue).localeCompare(String(rightValue)) * direction;
+    });
+
+    return ordered;
+  }, [filteredCampaigns, sortField, sortDirection]);
+  const totalCampaignCount = sortedCampaigns.length;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(totalCampaignCount / CAMPAIGNS_PER_PAGE),
+  );
+  const activePage = Math.min(currentPage, totalPages);
+  const paginatedCampaigns = useMemo(() => {
+    const start = (activePage - 1) * CAMPAIGNS_PER_PAGE;
+    return sortedCampaigns.slice(start, start + CAMPAIGNS_PER_PAGE);
+  }, [sortedCampaigns, activePage]);
+  const shownCampaignCount = paginatedCampaigns.length;
 
   const totals = useMemo(() => {
-    return campaigns.reduce(
+    return sortedCampaigns.reduce(
       (accumulator, campaign) => {
         accumulator.budget += campaign.budget;
         accumulator.spend += campaign.spend;
@@ -267,21 +347,67 @@ export default function Home() {
         clicks: 0,
       },
     );
-  }, [campaigns]);
+  }, [sortedCampaigns]);
 
   const ctr =
     totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
+  const simulationLocked = simulationDay >= MAX_SIMULATION_DAY;
 
-  async function loadCampaigns(): Promise<void> {
-    const validation = validateFilters(page, pageSize, status);
-    if (!validation.values) {
-      setDashboardState((previous) => ({
-        ...previous,
-        loading: false,
-        error: validation.error,
-      }));
-      return;
+  async function fetchAllCampaigns(
+    status?: ValidStatus,
+  ): Promise<CampaignListResponse> {
+    let page = 1;
+    const campaignsAccumulator: Campaign[] = [];
+    const seenCampaignIds = new Set<string>();
+
+    while (true) {
+      const query = new URLSearchParams();
+      query.set("page", String(page));
+      query.set("page_size", String(CAMPAIGNS_PER_PAGE));
+      if (status) {
+        query.set("status", status);
+      }
+
+      const endpoint = `/api/campaign/campaigns?${query.toString()}`;
+      const response = await requestJsonWithResilience<CampaignListResponse>(
+        endpoint,
+        { method: "GET" },
+        "Failed to load campaigns.",
+      );
+
+      for (const campaign of response.campaigns) {
+        if (seenCampaignIds.has(campaign.id)) {
+          continue;
+        }
+
+        seenCampaignIds.add(campaign.id);
+        campaignsAccumulator.push(campaign);
+      }
+
+      if (
+        response.campaigns.length === 0 ||
+        response.campaigns.length < CAMPAIGNS_PER_PAGE
+      ) {
+        break;
+      }
+
+      page += 1;
     }
+
+    return {
+      page: 1,
+      page_size: CAMPAIGNS_PER_PAGE,
+      total: campaignsAccumulator.length,
+      campaigns: campaignsAccumulator,
+    };
+  }
+
+  async function loadCampaigns(
+    statusOverride?: StatusFilterOption,
+  ): Promise<void> {
+    const effectiveStatus = statusOverride ?? statusFilter;
+    const selectedStatus =
+      effectiveStatus === "all" ? undefined : (effectiveStatus as ValidStatus);
 
     setDashboardState((previous) => ({
       ...previous,
@@ -289,23 +415,8 @@ export default function Home() {
       error: undefined,
     }));
 
-    const query = new URLSearchParams();
-    query.set("page", String(validation.values.page));
-    query.set("page_size", String(validation.values.pageSize));
-    if (validation.values.status) {
-      query.set("status", validation.values.status);
-    }
-
-    const endpoint = query.toString()
-      ? `/api/campaign/campaigns?${query.toString()}`
-      : "/api/campaign/campaigns";
-
     try {
-      const list = await requestJsonWithResilience<CampaignListResponse>(
-        endpoint,
-        { method: "GET" },
-        "Failed to load campaigns.",
-      );
+      const list = await fetchAllCampaigns(selectedStatus);
 
       setDashboardState({
         loading: false,
@@ -355,9 +466,67 @@ export default function Home() {
     }
   }
 
-  function onRefreshList(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    void loadCampaigns();
+  function onPrevPage() {
+    if (dashboardState.loading || activePage <= 1) {
+      return;
+    }
+
+    setCurrentPage(activePage - 1);
+  }
+
+  function onNextPage() {
+    if (dashboardState.loading || activePage >= totalPages) {
+      return;
+    }
+
+    setCurrentPage(activePage + 1);
+  }
+
+  async function onAdvanceDay() {
+    if (simulationLocked) {
+      setAdvanceDayMessage(undefined);
+      return;
+    }
+
+    setAdvancingDay(true);
+    setAdvanceDayMessage(undefined);
+
+    try {
+      const response = await requestJsonWithResilience<unknown>(
+        "/api/campaign/next-day",
+        { method: "POST" },
+        "Failed to advance simulation to the next day.",
+      );
+
+      const apiDay = extractSimulationDay(response);
+      const thresholdCount = extractCampaignsOverThreshold(response);
+      const nextDay = apiDay ?? simulationDay + 1;
+      const normalizedDay = Math.min(MAX_SIMULATION_DAY, Math.max(0, nextDay));
+      setSimulationDay(normalizedDay);
+      if (thresholdCount !== undefined) {
+        setCampaignsOverThreshold(thresholdCount);
+      }
+
+      await loadCampaigns();
+
+      if (isModalOpen && selectedCampaignId) {
+        await loadCampaignDetail(selectedCampaignId);
+      }
+
+      setAdvanceDayMessage(
+        normalizedDay >= MAX_SIMULATION_DAY
+          ? undefined
+          : `Simulation progressed to day ${normalizedDay}.`,
+      );
+    } catch (error) {
+      setAdvanceDayMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to advance simulation to the next day.",
+      );
+    } finally {
+      setAdvancingDay(false);
+    }
   }
 
   function openCampaignModal(campaign: Campaign) {
@@ -373,7 +542,13 @@ export default function Home() {
   }
 
   useEffect(() => {
-    void loadCampaigns();
+    const frame = window.requestAnimationFrame(() => {
+      void loadCampaigns();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
     // Initial load runs once on mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -398,19 +573,52 @@ export default function Home() {
     <div className="min-h-screen bg-[radial-gradient(circle_at_15%_5%,#f4f1de_0,#f6efe3_36%,#dce3df_100%)] text-stone-900">
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-10">
         <header className="rounded-3xl border border-teal-800/20 bg-white/85 p-6 shadow-[0_20px_50px_-35px_rgba(20,83,45,0.45)] backdrop-blur">
-          <p className="text-xs font-semibold uppercase tracking-[0.26em] text-teal-800">
-            Campaign Dashboard
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Live Campaign Performance Board
-          </h1>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-700 sm:text-base">
-            Monitor delivery and spend at a glance, then drill into a campaign
-            to inspect dates, CPM, and engagement metrics.
-          </p>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-teal-800">
+                Campaign Dashboard
+              </p>
+              <p className="mt-2 inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-teal-800">
+                Simulation Day {simulationDay}
+              </p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+                Live Campaign Performance Board
+              </h1>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-700 sm:text-base">
+                Monitor delivery and spend at a glance, then drill into a
+                campaign to inspect dates, CPM, and engagement metrics.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="api-btn"
+              onClick={() => void onAdvanceDay()}
+              disabled={advancingDay || simulationLocked}
+            >
+              {advancingDay
+                ? "Advancing Day..."
+                : simulationLocked
+                  ? "Day 5 Reached"
+                  : "Advance to Next Day"}
+            </button>
+          </div>
+
+          {simulationLocked ? (
+            <p className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              You cannot progress after day {MAX_SIMULATION_DAY}. Restart the
+              Campaign API container to continue the simulation.
+            </p>
+          ) : null}
+
+          {advanceDayMessage ? (
+            <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              {advanceDayMessage}
+            </p>
+          ) : null}
         </header>
 
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <article className="rounded-2xl border border-teal-900/15 bg-white/85 p-4 shadow-[0_14px_34px_-24px_rgba(20,83,45,0.6)]">
             <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
               Total Budget
@@ -441,6 +649,14 @@ export default function Home() {
             </p>
             <p className="mt-2 text-2xl font-semibold">{ctr.toFixed(2)}%</p>
           </article>
+          <article className="rounded-2xl border border-amber-900/20 bg-amber-50/80 p-4 shadow-[0_14px_34px_-24px_rgba(180,83,9,0.5)]">
+            <p className="text-xs uppercase tracking-[0.18em] text-amber-800">
+              # Campaigns Over Threshold
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-amber-900">
+              {campaignsOverThreshold ?? "-"}
+            </p>
+          </article>
         </section>
 
         <section className="grid gap-6">
@@ -449,7 +665,7 @@ export default function Home() {
               <div>
                 <h2 className="text-lg font-semibold">Campaigns</h2>
                 <p className="mt-1 text-sm text-stone-600">
-                  Page {dashboardState.list?.page ?? "-"} of {totalPages}
+                  Page {activePage} of {totalPages}
                 </p>
               </div>
               <p className="rounded-full bg-teal-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-teal-50">
@@ -457,47 +673,150 @@ export default function Home() {
               </p>
             </div>
 
-            <form
-              className="mt-4 grid gap-3 sm:grid-cols-2"
-              onSubmit={onRefreshList}
-            >
-              <label className="grid gap-1 text-sm">
-                <span className="text-stone-700">Page</span>
-                <input
-                  className="api-input"
-                  inputMode="numeric"
-                  value={page}
-                  onChange={(event) => setPage(event.target.value)}
-                  placeholder="1"
-                />
-              </label>
-              <label className="grid gap-1 text-sm">
-                <span className="text-stone-700">Page size (max 10)</span>
-                <input
-                  className="api-input"
-                  inputMode="numeric"
-                  value={pageSize}
-                  onChange={(event) => setPageSize(event.target.value)}
-                  placeholder="10"
-                />
-              </label>
-              <label className="grid gap-1 text-sm sm:col-span-2">
-                <span className="text-stone-700">Status (optional)</span>
-                <input
-                  className="api-input"
-                  value={status}
-                  onChange={(event) => setStatus(event.target.value)}
-                  placeholder="active"
-                />
-              </label>
-              <button
-                type="submit"
-                className="api-btn sm:col-span-2"
-                disabled={dashboardState.loading}
-              >
-                {dashboardState.loading ? "Refreshing..." : "Refresh Campaigns"}
-              </button>
+            <form className="mt-4 grid gap-3 sm:grid-cols-2">
+              <section className="sm:col-span-2 rounded-2xl border border-stone-200 bg-stone-50/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
+                  Status Filter
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {STATUS_FILTER_OPTIONS.map((option) => {
+                    const selected = statusFilter === option;
+
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          if (option === statusFilter) {
+                            return;
+                          }
+
+                          setStatusFilter(option);
+                          setCurrentPage(1);
+                          void loadCampaigns(option);
+                        }}
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${
+                          selected
+                            ? "border border-teal-700 bg-teal-700 text-teal-50"
+                            : "border border-stone-300 bg-white text-stone-700 hover:border-teal-400"
+                        }`}
+                        aria-pressed={selected}
+                      >
+                        {option}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+
+              <section className="sm:col-span-2 rounded-2xl border border-stone-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
+                  Search And Sort
+                </p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <label className="grid gap-1 text-sm">
+                    <span className="text-stone-700">
+                      Search (ID/Name/Advertiser)
+                    </span>
+                    <input
+                      className="api-input"
+                      value={searchQuery}
+                      onChange={(event) => {
+                        setSearchQuery(event.target.value);
+                        setCurrentPage(1);
+                      }}
+                      placeholder="migraine"
+                    />
+                  </label>
+                  <label className="grid gap-1 text-sm">
+                    <span className="text-stone-700">Sort Field</span>
+                    <select
+                      className="api-input"
+                      value={sortField}
+                      onChange={(event) => {
+                        setSortField(event.target.value as CampaignSortField);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      {SORT_FIELDS.map((field) => (
+                        <option key={field} value={field}>
+                          {field}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="sm:col-span-2 lg:col-span-1 inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-700">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-stone-300"
+                      checked={hideOverNinetyPercentBudget}
+                      onChange={(event) => {
+                        setHideOverNinetyPercentBudget(event.target.checked);
+                        setCurrentPage(1);
+                      }}
+                    />
+                    Hide campaigns at or above 90% budget
+                  </label>
+                  <div className="grid gap-1 text-sm sm:col-span-2 lg:col-span-3">
+                    <span className="text-stone-700">Sort Direction</span>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSortDirection("asc");
+                          setCurrentPage(1);
+                        }}
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${
+                          sortDirection === "asc"
+                            ? "border border-teal-700 bg-teal-700 text-teal-50"
+                            : "border border-stone-300 bg-white text-stone-700 hover:border-teal-400"
+                        }`}
+                        aria-pressed={sortDirection === "asc"}
+                      >
+                        Ascending
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSortDirection("desc");
+                          setCurrentPage(1);
+                        }}
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${
+                          sortDirection === "desc"
+                            ? "border border-teal-700 bg-teal-700 text-teal-50"
+                            : "border border-stone-300 bg-white text-stone-700 hover:border-teal-400"
+                        }`}
+                        aria-pressed={sortDirection === "desc"}
+                      >
+                        Descending
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </form>
+
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                className="api-btn"
+                onClick={onPrevPage}
+                disabled={dashboardState.loading || currentPage <= 1}
+              >
+                Previous Page
+              </button>
+              <p className="text-sm text-stone-600">
+                Showing page {activePage} of {totalPages}
+              </p>
+              <button
+                type="button"
+                className="api-btn"
+                onClick={onNextPage}
+                disabled={dashboardState.loading || activePage >= totalPages}
+              >
+                Next Page
+              </button>
+            </div>
 
             {dashboardState.error ? (
               <p className="mt-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -506,17 +825,20 @@ export default function Home() {
             ) : null}
 
             <div className="mt-4 grid gap-3">
-              {campaigns.length === 0 && !dashboardState.loading ? (
+              {paginatedCampaigns.length === 0 && !dashboardState.loading ? (
                 <p className="rounded-xl border border-dashed border-stone-300 bg-stone-50 px-4 py-6 text-sm text-stone-600">
-                  No campaigns found for this filter.
+                  {hideOverNinetyPercentBudget
+                    ? "No campaigns remain after hiding 90%+ budget campaigns."
+                    : "No campaigns found for this filter."}
                 </p>
               ) : null}
 
-              {campaigns.map((campaign) => {
+              {paginatedCampaigns.map((campaign) => {
                 const spentPct =
                   campaign.budget > 0
                     ? Math.min(100, (campaign.spend / campaign.budget) * 100)
                     : 0;
+                const budgetThresholdExceeded = isOverBudgetThreshold(campaign);
 
                 return (
                   <button
@@ -526,7 +848,9 @@ export default function Home() {
                     className={`rounded-2xl border p-4 text-left transition ${
                       selectedCampaignId === campaign.id && isModalOpen
                         ? "border-teal-700 bg-teal-50 shadow-[0_12px_24px_-20px_rgba(15,118,110,0.8)]"
-                        : "border-stone-200 bg-white hover:border-teal-300"
+                        : budgetThresholdExceeded
+                          ? "border-amber-400 bg-amber-50/70 hover:border-amber-500"
+                          : "border-stone-200 bg-white hover:border-teal-300"
                     }`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
@@ -542,6 +866,12 @@ export default function Home() {
                         {campaign.status}
                       </span>
                     </div>
+
+                    {budgetThresholdExceeded ? (
+                      <p className="mt-3 inline-flex rounded-full border border-amber-300 bg-amber-100 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-amber-900">
+                        Spend at 90%+ of budget
+                      </p>
+                    ) : null}
 
                     <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-stone-700">
                       <p>Budget: {formatCurrency(campaign.budget)}</p>
