@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from typing import Any
 from urllib import error, parse, request
 
-
 DEFAULT_GITHUB_API_BASE_URL = "https://api.github.com"
 DEFAULT_GITHUB_API_VERSION = "2026-03-10"
 

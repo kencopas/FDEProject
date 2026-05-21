@@ -1,0 +1,29 @@
+2026-05-21 18:15:03,281 | INFO | __main__ | Starting campaign monitor for kencopas/FDEProject with poll interval 10s
+2026-05-21 18:15:03,288 | ERROR | __main__ | Campaign API error during poll: Unable to reach Campaign API at http://0.0.0.0:8080/campaigns?page=1&page_size=10: [Errno 61] Connection refused
+2026-05-21 18:15:09,311 | INFO | __main__ | Campaign monitor stopped by user
+2026-05-21 18:16:11,557 | INFO | __main__ | Starting campaign monitor for kencopas/FDEProject with poll interval 10s
+2026-05-21 18:16:11,584 | ERROR | __main__ | Campaign API error during poll: Campaign API request failed: GET /campaigns | status=500 | body={"error":"internal_server_error","message":"An unexpected error occurred"}
+2026-05-21 18:19:08,291 | INFO | __main__ | Starting campaign monitor for kencopas/FDEProject with poll interval 10s
+2026-05-21 18:19:09,423 | INFO | poll_iteration | Poll complete at 2026-05-21T22:19:09.423545+00:00 | campaigns=50 | over_threshold=0 | issues_created=0
+2026-05-21 18:19:20,073 | INFO | poll_iteration | Poll complete at 2026-05-21T22:19:20.073462+00:00 | campaigns=50 | over_threshold=0 | issues_created=0
+2026-05-21 18:19:31,938 | INFO | poll_iteration | Poll complete at 2026-05-21T22:19:31.938087+00:00 | campaigns=50 | over_threshold=0 | issues_created=0
+2026-05-21 18:19:44,112 | INFO | poll_iteration | Poll complete at 2026-05-21T22:19:44.112087+00:00 | campaigns=50 | over_threshold=0 | issues_created=0
+2026-05-21 18:19:46,161 | INFO | __main__ | Campaign monitor stopped by user
+2026-05-21 18:21:33,905 | INFO | __main__ | Starting campaign monitor for kencopas/FDEProject with poll interval 10s
+2026-05-21 18:21:36,716 | INFO | poll_iteration | Poll complete at 2026-05-21T22:21:36.716349+00:00 | campaigns=50 | over_threshold=0 | issues_created=0
+2026-05-21 18:21:48,573 | INFO | poll_iteration | Poll complete at 2026-05-21T22:21:48.573052+00:00 | campaigns=50 | over_threshold=0 | issues_created=0
+2026-05-21 18:21:59,130 | INFO | poll_iteration | Poll complete at 2026-05-21T22:21:59.130013+00:00 | campaigns=50 | over_threshold=0 | issues_created=0
+2026-05-21 18:22:16,102 | INFO | poll_iteration | Poll complete at 2026-05-21T22:22:16.102099+00:00 | campaigns=50 | over_threshold=0 | issues_created=0
+2026-05-21 18:22:28,111 | INFO | poll_iteration | Created issue #2 for campaign 254eadee-67ff-e43e-6021-64be843a09dd (https://github.com/kencopas/FDEProject/issues/2)
+2026-05-21 18:22:28,799 | INFO | poll_iteration | Created issue #3 for campaign 39bf1c4b-3d15-68b3-830d-a185e11b4ae9 (https://github.com/kencopas/FDEProject/issues/3)
+2026-05-21 18:22:29,413 | INFO | poll_iteration | Created issue #4 for campaign dc4e3492-90bc-87b0-9fb0-7abc7d00e4cb (https://github.com/kencopas/FDEProject/issues/4)
+2026-05-21 18:22:30,195 | INFO | poll_iteration | Created issue #5 for campaign 22942f8b-2249-3458-0a2c-63a9bdddeba0 (https://github.com/kencopas/FDEProject/issues/5)
+2026-05-21 18:22:30,719 | INFO | poll_iteration | Created issue #6 for campaign 92212ac2-093c-30d8-8191-c10d3d54e9cd (https://github.com/kencopas/FDEProject/issues/6)
+2026-05-21 18:22:31,430 | INFO | poll_iteration | Created issue #7 for campaign 79492f99-641f-3e76-f0f9-5dfa28f60b2c (https://github.com/kencopas/FDEProject/issues/7)
+2026-05-21 18:22:31,974 | INFO | poll_iteration | Created issue #8 for campaign 5244d5d3-f476-ddc1-62fb-bb7fcf1789ad (https://github.com/kencopas/FDEProject/issues/8)
+2026-05-21 18:22:32,588 | INFO | poll_iteration | Created issue #9 for campaign 5a449dc1-0dcf-b2a1-1383-6b6d56fb82a3 (https://github.com/kencopas/FDEProject/issues/9)
+2026-05-21 18:22:33,127 | INFO | poll_iteration | Created issue #10 for campaign d89c0baf-a6d2-28ed-fb95-4f332b1501ed (https://github.com/kencopas/FDEProject/issues/10)
+2026-05-21 18:22:33,127 | INFO | poll_iteration | Poll complete at 2026-05-21T22:22:33.127938+00:00 | campaigns=50 | over_threshold=10 | issues_created=9
+2026-05-21 18:22:43,953 | INFO | poll_iteration | Poll complete at 2026-05-21T22:22:43.953205+00:00 | campaigns=50 | over_threshold=10 | issues_created=0
+2026-05-21 18:22:54,875 | INFO | poll_iteration | Poll complete at 2026-05-21T22:22:54.875268+00:00 | campaigns=50 | over_threshold=10 | issues_created=0
+2026-05-21 18:23:03,084 | INFO | __main__ | Campaign monitor stopped by user

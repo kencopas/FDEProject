@@ -1,58 +1,74 @@
 from __future__ import annotations
 
+import os
+import time
+
 from pydantic import ValidationError
 
-from campaign_api_client import CampaignApiClient, CampaignApiError
-from github_issues_api_client import GitHubApiError, GitHubIssuesApiClient
-from settings import CampaignApiSettings, GitHubApiSettings
+from config import CampaignApiSettings, GitHubApiSettings, get_logger, setup_logging
+from poll_iteration import run_poll_iteration
+from github_api.client import GitHubApiError, GitHubIssuesApiClient
+from campaign_api.client import CampaignApiError, CampaignApiClient
+
+POLL_INTERVAL_SECONDS = 10
+BUDGET_ALERT_THRESHOLD = 0.9
+DEFAULT_GITHUB_OWNER = "kencopas"
+DEFAULT_GITHUB_REPO = "FDEProject"
+
+logger = get_logger(__name__)
 
 
 def main() -> None:
+    setup_logging()
+
     try:
-        settings = CampaignApiSettings()
+        campaign_settings = CampaignApiSettings()
+        github_settings = GitHubApiSettings()
     except ValidationError as exc:
-        print("Invalid configuration from environment variables:")
-        print(exc)
+        logger.error("Invalid configuration from environment variables")
+        logger.error("%s", exc)
         return
 
-    client = CampaignApiClient(
-        base_url=str(settings.campaign_api_base_url),
-        api_key=settings.campaign_api_key,
-        timeout=settings.campaign_api_timeout,
-        user_agent=settings.campaign_api_user_agent,
+    campaign_client = CampaignApiClient(
+        base_url=str(campaign_settings.campaign_api_base_url),
+        api_key=campaign_settings.campaign_api_key,
+        timeout=campaign_settings.campaign_api_timeout,
+        user_agent=campaign_settings.campaign_api_user_agent,
+    )
+    github_client = GitHubIssuesApiClient(
+        token=github_settings.github_token,
+        base_url=str(github_settings.github_api_base_url),
+        api_version=github_settings.github_api_version,
+        timeout=github_settings.github_api_timeout,
+        user_agent=github_settings.github_api_user_agent,
+    )
+
+    owner = os.getenv("GITHUB_REPO_OWNER", DEFAULT_GITHUB_OWNER)
+    repo = os.getenv("GITHUB_REPO_NAME", DEFAULT_GITHUB_REPO)
+
+    logger.info(
+        "Starting campaign monitor "
+        f"for {owner}/{repo} with poll interval {POLL_INTERVAL_SECONDS}s"
     )
 
     try:
-        health = client.health()
-        print("Campaign API health response:")
-        print(health)
-    except CampaignApiError as exc:
-        print(f"Campaign API error: {exc}")
+        while True:
+            try:
+                run_poll_iteration(
+                    campaign_client,
+                    github_client,
+                    owner=owner,
+                    repo=repo,
+                    budget_alert_threshold=BUDGET_ALERT_THRESHOLD,
+                )
+            except CampaignApiError as exc:
+                logger.error("Campaign API error during poll: %s", exc)
+            except GitHubApiError as exc:
+                logger.error("GitHub API error during poll: %s", exc)
 
-    try:
-        github_settings = GitHubApiSettings()
-        github_client = GitHubIssuesApiClient(
-            token=github_settings.github_token,
-            base_url=str(github_settings.github_api_base_url),
-            api_version=github_settings.github_api_version,
-            timeout=github_settings.github_api_timeout,
-            user_agent=github_settings.github_api_user_agent,
-        )
-        print("GitHub Issues API client initialized successfully.")
-
-        issues = github_client.list_issues(
-            owner="kencopas",
-            repo="FDEProject",
-            state="open",
-            per_page=1,
-            page=1,
-        )
-        print(f"GitHub Issues API list check succeeded. Retrieved {len(issues)} item(s).")
-    except ValidationError as exc:
-        print("GitHub client not initialized. Missing or invalid GitHub settings:")
-        print(exc)
-    except GitHubApiError as exc:
-        print(f"GitHub API error: {exc}")
+            time.sleep(POLL_INTERVAL_SECONDS)
+    except KeyboardInterrupt:
+        logger.info("Campaign monitor stopped by user")
 
 
 if __name__ == "__main__":
