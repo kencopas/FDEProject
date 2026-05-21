@@ -40,6 +40,7 @@ async def run_poll_iteration(
     for campaign, utilization in over_threshold:
         title = build_issue_title(campaign, budget_alert_threshold)
         if title in open_titles:
+            logger.warning(f"Skipping campaign issue title: {title}")
             continue
         open_titles.add(title)
         to_create.append((title, campaign, utilization))
