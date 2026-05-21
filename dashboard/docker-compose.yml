@@ -1,0 +1,13 @@
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      # Override if Campaign API is reachable at a different host/port.
+      CAMPAIGN_API_BASE_URL: ${CAMPAIGN_API_BASE_URL:-http://host.docker.internal:8000}
+      # Optional API key forwarded by internal server routes.
+      CAMPAIGN_API_KEY: ${CAMPAIGN_API_KEY:-}
+    restart: unless-stopped

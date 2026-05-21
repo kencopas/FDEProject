@@ -1,0 +1,33 @@
+services:
+  campaign-api:
+    image: didelta50/4289329224:latest
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      CAMPAIGN_API_BASE_URL: ${CAMPAIGN_API_BASE_URL:-http://campaign-api:8080}
+      CAMPAIGN_API_KEY: ${CAMPAIGN_API_KEY:-}
+    depends_on:
+      - campaign-api
+    restart: unless-stopped
+
+  github-integration:
+    build:
+      context: ./github_integration
+      dockerfile: Dockerfile
+    env_file:
+      - ./github_integration/.env
+    environment:
+      CAMPAIGN_API_BASE_URL: ${CAMPAIGN_API_BASE_URL:-http://campaign-api:8080}
+    volumes:
+      - ./github_integration/logs:/app/logs
+    depends_on:
+      - campaign-api
+    restart: unless-stopped

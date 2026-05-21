@@ -18,6 +18,35 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Run With Docker
+
+Build and start the dashboard container:
+
+```bash
+docker compose up --build
+```
+
+Or run detached:
+
+```bash
+docker compose up --build -d
+```
+
+Stop the container:
+
+```bash
+docker compose down
+```
+
+The service is exposed at `http://localhost:3000`.
+
+### Container Environment Variables
+
+- `CAMPAIGN_API_BASE_URL` (default: `http://host.docker.internal:8000`)
+- `CAMPAIGN_API_KEY` (optional)
+
+Set these in your shell (or a `.env` file in `dashboard/`) before running `docker compose up`.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

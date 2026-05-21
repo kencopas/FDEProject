@@ -110,3 +110,33 @@ updated = gh.update_issue(
 
 print(updated["state"])
 ```
+
+## Containerized Usage
+
+Build the image:
+
+```bash
+docker build -t github-integration:latest .
+```
+
+Run with your `.env` file:
+
+```bash
+docker run --rm \
+	--env-file .env \
+	-e CAMPAIGN_API_BASE_URL=http://host.docker.internal:8000 \
+	-v "$(pwd)/logs:/app/logs" \
+	github-integration:latest
+```
+
+Or run with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+Notes:
+
+- Keep `GITHUB_TOKEN` in `.env`.
+- If your Campaign API runs on your Mac host, use `http://host.docker.internal:8000`.
+- If your Campaign API runs in another container/network, set `CAMPAIGN_API_BASE_URL` to that service URL.
