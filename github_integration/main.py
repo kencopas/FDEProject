@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import asyncio
 import os
-import time
 
 from pydantic import ValidationError
 
@@ -18,7 +18,7 @@ DEFAULT_GITHUB_REPO = "FDEProject"
 logger = get_logger(__name__)
 
 
-def main() -> None:
+async def main() -> None:
     setup_logging()
 
     try:
@@ -54,7 +54,7 @@ def main() -> None:
     try:
         while True:
             try:
-                run_poll_iteration(
+                await run_poll_iteration(
                     campaign_client,
                     github_client,
                     owner=owner,
@@ -66,10 +66,16 @@ def main() -> None:
             except GitHubApiError as exc:
                 logger.error("GitHub API error during poll: %s", exc)
 
-            time.sleep(POLL_INTERVAL_SECONDS)
+            await asyncio.sleep(POLL_INTERVAL_SECONDS)
     except KeyboardInterrupt:
         logger.info("Campaign monitor stopped by user")
+    finally:
+        await asyncio.gather(
+            campaign_client.aclose(),
+            github_client.aclose(),
+            return_exceptions=True,
+        )
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

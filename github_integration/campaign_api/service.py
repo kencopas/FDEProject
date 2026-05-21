@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import asyncio
+import math
+
 from campaign_api.client import Campaign, CampaignApiClient
 
 
@@ -11,32 +14,45 @@ def campaign_name(campaign: Campaign) -> str:
     return campaign.name.strip() if campaign.name.strip() else "Unnamed"
 
 
-def fetch_all_campaigns(client: CampaignApiClient) -> list[Campaign]:
-    page = 1
-    page_size = 10
-    campaigns: list[Campaign] = []
-    total: int | None = None
+def _batched(items: list[int], batch_size: int) -> list[list[int]]:
+    return [
+        items[index : index + batch_size] for index in range(0, len(items), batch_size)
+    ]
 
-    while True:
-        response = client.list_campaigns(page=page, page_size=page_size)
-        page_campaigns = response.campaigns
 
-        if total is None:
-            total = response.total
+async def fetch_all_campaigns(
+    client: CampaignApiClient,
+    *,
+    page_size: int = 10,
+    batch_size: int = 5,
+) -> list[Campaign]:
+    if page_size < 1:
+        raise ValueError("page_size must be >= 1")
+    if batch_size < 1:
+        raise ValueError("batch_size must be >= 1")
 
-        if not page_campaigns:
-            break
+    first_page = await client.list_campaigns(page=1, page_size=page_size)
+    campaigns: list[Campaign] = list(first_page.campaigns)
+    total = first_page.total
 
-        campaigns.extend(page_campaigns)
+    if total <= len(campaigns):
+        return campaigns
 
-        if total is not None and len(campaigns) >= total:
-            break
+    total_pages = math.ceil(total / page_size)
+    remaining_pages = list(range(2, total_pages + 1))
 
-        if len(page_campaigns) < page_size:
-            break
+    for page_group in _batched(remaining_pages, batch_size):
+        responses = await asyncio.gather(
+            *[
+                client.list_campaigns(page=page, page_size=page_size)
+                for page in page_group
+            ]
+        )
+        for response in responses:
+            campaigns.extend(response.campaigns)
 
-        page += 1
-
+    if len(campaigns) > total:
+        return campaigns[:total]
     return campaigns
 
 

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 import json
-import socket
-import time
 from dataclasses import dataclass
 from datetime import date
 from typing import Any
-from urllib import error, parse, request
+from urllib import parse
 
+import httpx
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 DEFAULT_CAMPAIGN_REQUEST_TIMEOUT_SECONDS = 1.0
@@ -85,16 +85,30 @@ class CampaignApiClient:
         self.timeout = min(timeout, DEFAULT_CAMPAIGN_REQUEST_TIMEOUT_SECONDS)
         self.max_retries = max_retries
         self.user_agent = user_agent
+        self._http_client = httpx.AsyncClient(
+            base_url=self.base_url,
+            timeout=self.timeout,
+            headers={"User-Agent": self.user_agent},
+        )
 
-    def health(self) -> dict[str, Any]:
+    async def __aenter__(self) -> CampaignApiClient:
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        await self._http_client.aclose()
+
+    async def health(self) -> dict[str, Any]:
         """GET /health"""
-        return self._request("GET", "/health")
+        return await self._request("GET", "/health")
 
-    def next_day(self) -> dict[str, Any]:
+    async def next_day(self) -> dict[str, Any]:
         """POST /next-day"""
-        return self._request("POST", "/next-day")
+        return await self._request("POST", "/next-day")
 
-    def list_campaigns(
+    async def list_campaigns(
         self,
         *,
         page: int = 1,
@@ -115,7 +129,9 @@ class CampaignApiClient:
         if status:
             query["status"] = status
 
-        response = self._request("GET", "/campaigns", query=query, api_key=api_key)
+        response = await self._request(
+            "GET", "/campaigns", query=query, api_key=api_key
+        )
         try:
             return CampaignListResponse.model_validate(response)
         except ValidationError as exc:
@@ -124,13 +140,15 @@ class CampaignApiClient:
                 response_body=str(exc),
             ) from exc
 
-    def get_campaign(self, campaign_id: str, *, api_key: str | None = None) -> Campaign:
+    async def get_campaign(
+        self, campaign_id: str, *, api_key: str | None = None
+    ) -> Campaign:
         """GET /campaigns/{campaign_id}"""
         if not campaign_id:
             raise ValueError("campaign_id is required")
 
         safe_campaign_id = parse.quote(campaign_id, safe="")
-        response = self._request(
+        response = await self._request(
             "GET", f"/campaigns/{safe_campaign_id}", api_key=api_key
         )
         try:
@@ -144,11 +162,11 @@ class CampaignApiClient:
                 response_body=str(exc),
             ) from exc
 
-    def api_docs(self) -> str:
+    async def api_docs(self) -> str:
         """GET /api-docs"""
-        return self._request("GET", "/api-docs", expect_json=False)
+        return await self._request("GET", "/api-docs", expect_json=False)
 
-    def _request(
+    async def _request(
         self,
         method: str,
         path: str,
@@ -168,26 +186,34 @@ class CampaignApiClient:
         if request_api_key:
             headers["x-api-key"] = request_api_key
 
-        req = request.Request(url=url, method=method, headers=headers)
+        normalized_path = path if path.startswith("/") else f"/{path}"
         attempts = self.max_retries + 1
         last_timeout_reason: str | None = None
 
         for attempt in range(attempts):
             try:
-                with request.urlopen(req, timeout=self.timeout) as response:
-                    raw = response.read().decode("utf-8")
-                    if not expect_json:
-                        return raw
+                response = await self._http_client.request(
+                    method,
+                    normalized_path,
+                    params=query,
+                    headers=headers,
+                )
+                response.raise_for_status()
 
-                    if not raw.strip():
-                        return {}
-                    return json.loads(raw)
+                raw = response.text
+                if not expect_json:
+                    return raw
 
-            except error.HTTPError as exc:
-                body = exc.read().decode("utf-8", errors="replace")
-                should_retry = exc.code >= 500 and attempt < self.max_retries
+                if not raw.strip():
+                    return {}
+                return json.loads(raw)
+
+            except httpx.HTTPStatusError as exc:
+                status = exc.response.status_code
+                body = exc.response.text
+                should_retry = status >= 500 and attempt < self.max_retries
                 if should_retry:
-                    time.sleep(self._retry_delay_seconds(attempt))
+                    await asyncio.sleep(self._retry_delay_seconds(attempt))
                     continue
 
                 raise CampaignApiError(
@@ -195,34 +221,19 @@ class CampaignApiClient:
                         f"Campaign API request failed after {attempt + 1} attempt(s): "
                         f"{method} {path}"
                     ),
-                    status_code=exc.code,
+                    status_code=status,
                     response_body=body,
                 ) from exc
-            except error.URLError as exc:
-                if self._is_timeout_error(exc) and attempt < self.max_retries:
-                    time.sleep(self._retry_delay_seconds(attempt))
+            except httpx.TimeoutException as exc:
+                last_timeout_reason = str(exc)
+                if attempt < self.max_retries:
+                    await asyncio.sleep(self._retry_delay_seconds(attempt))
                     continue
-
-                if self._is_timeout_error(exc):
-                    reason = str(exc.reason)
-                    last_timeout_reason = reason
-                    break
-
+                break
+            except httpx.RequestError as exc:
                 raise CampaignApiError(
-                    f"Unable to reach Campaign API at {url}: {exc.reason}"
+                    f"Unable to reach Campaign API at {url}: {exc}"
                 ) from exc
-            except TimeoutError as exc:
-                last_timeout_reason = str(exc)
-                if attempt < self.max_retries:
-                    time.sleep(self._retry_delay_seconds(attempt))
-                    continue
-                break
-            except socket.timeout as exc:
-                last_timeout_reason = str(exc)
-                if attempt < self.max_retries:
-                    time.sleep(self._retry_delay_seconds(attempt))
-                    continue
-                break
             except json.JSONDecodeError as exc:
                 raise CampaignApiError(
                     message=f"Campaign API returned invalid JSON for {method} {path}"
@@ -250,12 +261,3 @@ class CampaignApiClient:
     def _retry_delay_seconds(attempt: int) -> float:
         # 0.2s, 0.4s, 0.8s backoff for retries.
         return 0.2 * (2**attempt)
-
-    @staticmethod
-    def _is_timeout_error(exc: error.URLError) -> bool:
-        reason = exc.reason
-        if isinstance(reason, TimeoutError):
-            return True
-        if isinstance(reason, socket.timeout):
-            return True
-        return "timed out" in str(reason).lower()

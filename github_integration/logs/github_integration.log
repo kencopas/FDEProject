@@ -27,3 +27,233 @@
 2026-05-21 18:22:43,953 | INFO | poll_iteration | Poll complete at 2026-05-21T22:22:43.953205+00:00 | campaigns=50 | over_threshold=10 | issues_created=0
 2026-05-21 18:22:54,875 | INFO | poll_iteration | Poll complete at 2026-05-21T22:22:54.875268+00:00 | campaigns=50 | over_threshold=10 | issues_created=0
 2026-05-21 18:23:03,084 | INFO | __main__ | Campaign monitor stopped by user
+2026-05-21 18:35:13,621 | WARNING | __main__ | GitHub REST API does not support hard-deleting repository issues. This script will close all open issues instead.
+2026-05-21 18:35:14,279 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=all&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:35:14,281 | INFO | __main__ | Repo scan complete for kencopas/FDEProject | total_issues=10 | open_issues=9
+2026-05-21 18:35:14,858 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/10 "HTTP/1.1 200 OK"
+2026-05-21 18:35:14,928 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/7 "HTTP/1.1 200 OK"
+2026-05-21 18:35:14,946 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/3 "HTTP/1.1 200 OK"
+2026-05-21 18:35:14,953 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/9 "HTTP/1.1 200 OK"
+2026-05-21 18:35:14,958 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/4 "HTTP/1.1 200 OK"
+2026-05-21 18:35:15,064 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/5 "HTTP/1.1 200 OK"
+2026-05-21 18:35:15,065 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/6 "HTTP/1.1 200 OK"
+2026-05-21 18:35:15,066 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/8 "HTTP/1.1 200 OK"
+2026-05-21 18:35:15,067 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/2 "HTTP/1.1 200 OK"
+2026-05-21 18:35:15,068 | INFO | __main__ | Closed issue #10
+2026-05-21 18:35:15,068 | INFO | __main__ | Closed issue #9
+2026-05-21 18:35:15,069 | INFO | __main__ | Closed issue #8
+2026-05-21 18:35:15,069 | INFO | __main__ | Closed issue #7
+2026-05-21 18:35:15,069 | INFO | __main__ | Closed issue #6
+2026-05-21 18:35:15,069 | INFO | __main__ | Closed issue #5
+2026-05-21 18:35:15,069 | INFO | __main__ | Closed issue #4
+2026-05-21 18:35:15,069 | INFO | __main__ | Closed issue #3
+2026-05-21 18:35:15,069 | INFO | __main__ | Closed issue #2
+2026-05-21 18:35:15,069 | INFO | __main__ | Done. Attempted=9 | Closed=9 | Failed=0
+2026-05-21 18:37:18,134 | INFO | __main__ | Starting campaign monitor for kencopas/FDEProject with poll interval 10s
+2026-05-21 18:37:18,148 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:18,152 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:18,153 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:18,154 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:18,154 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:37:18,361 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:18,794 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:37:18,795 | INFO | poll_iteration | Poll complete at 2026-05-21T22:37:18.795776+00:00 | campaigns=50 | over_threshold=0 | issues_created=0
+2026-05-21 18:37:30,015 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:30,023 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:37:30,025 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:37:30,028 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:30,029 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:37:30,235 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:30,236 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:37:30,645 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:37:31,455 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:37:31,457 | ERROR | __main__ | Campaign API error during poll: Campaign API request failed after 4 attempt(s): GET /campaigns | status=500 | body={"error":"internal_server_error","message":"An unexpected error occurred"}
+2026-05-21 18:37:31,638 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:41,468 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:41,474 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:41,479 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:41,479 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:41,480 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:41,899 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:37:42,578 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:37:42,579 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:37:42,579 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:37:42,579 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:37:42,580 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:37:42,581 | INFO | poll_iteration | Created issue #11 for campaign 254eadee-67ff-e43e-6021-64be843a09dd (https://github.com/kencopas/FDEProject/issues/11)
+2026-05-21 18:37:42,581 | INFO | poll_iteration | Created issue #12 for campaign 39bf1c4b-3d15-68b3-830d-a185e11b4ae9 (https://github.com/kencopas/FDEProject/issues/12)
+2026-05-21 18:37:42,581 | INFO | poll_iteration | Created issue #13 for campaign dc4e3492-90bc-87b0-9fb0-7abc7d00e4cb (https://github.com/kencopas/FDEProject/issues/13)
+2026-05-21 18:37:42,581 | INFO | poll_iteration | Created issue #14 for campaign 22942f8b-2249-3458-0a2c-63a9bdddeba0 (https://github.com/kencopas/FDEProject/issues/14)
+2026-05-21 18:37:42,581 | INFO | poll_iteration | Created issue #15 for campaign 92212ac2-093c-30d8-8191-c10d3d54e9cd (https://github.com/kencopas/FDEProject/issues/15)
+2026-05-21 18:37:42,926 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:37:42,931 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:37:42,954 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:37:42,955 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:37:42,956 | INFO | poll_iteration | Created issue #16 for campaign 79492f99-641f-3e76-f0f9-5dfa28f60b2c (https://github.com/kencopas/FDEProject/issues/16)
+2026-05-21 18:37:42,956 | INFO | poll_iteration | Created issue #17 for campaign 5244d5d3-f476-ddc1-62fb-bb7fcf1789ad (https://github.com/kencopas/FDEProject/issues/17)
+2026-05-21 18:37:42,956 | INFO | poll_iteration | Created issue #19 for campaign 5a449dc1-0dcf-b2a1-1383-6b6d56fb82a3 (https://github.com/kencopas/FDEProject/issues/19)
+2026-05-21 18:37:42,956 | INFO | poll_iteration | Created issue #18 for campaign d89c0baf-a6d2-28ed-fb95-4f332b1501ed (https://github.com/kencopas/FDEProject/issues/18)
+2026-05-21 18:37:42,956 | INFO | poll_iteration | Poll complete at 2026-05-21T22:37:42.956748+00:00 | campaigns=50 | over_threshold=10 | issues_created=9
+2026-05-21 18:37:52,966 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:52,973 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:52,977 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:52,978 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:52,979 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:37:53,450 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:37:53,452 | INFO | poll_iteration | Poll complete at 2026-05-21T22:37:53.452394+00:00 | campaigns=50 | over_threshold=10 | issues_created=0
+2026-05-21 18:41:28,940 | INFO | __main__ | Starting campaign monitor for kencopas/FDEProject with poll interval 10s
+2026-05-21 18:41:28,948 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:28,951 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:28,954 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:28,954 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:28,955 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:29,405 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:41:29,406 | INFO | poll_iteration | Poll complete at 2026-05-21T22:41:29.406352+00:00 | campaigns=50 | over_threshold=10 | issues_created=0
+2026-05-21 18:41:39,415 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:39,421 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:39,425 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:39,426 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:39,427 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:39,945 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:41:39,946 | INFO | poll_iteration | Poll complete at 2026-05-21T22:41:39.946520+00:00 | campaigns=50 | over_threshold=10 | issues_created=0
+2026-05-21 18:41:49,952 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:41:50,158 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:50,163 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:50,167 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:50,168 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:52,779 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:41:53,255 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:41:53,258 | INFO | poll_iteration | Poll complete at 2026-05-21T22:41:53.258058+00:00 | campaigns=50 | over_threshold=10 | issues_created=0
+2026-05-21 18:42:03,266 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:03,272 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:03,275 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:03,276 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:42:03,277 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:03,485 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:04,212 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:42:04,215 | INFO | poll_iteration | Poll complete at 2026-05-21T22:42:04.215085+00:00 | campaigns=50 | over_threshold=10 | issues_created=0
+2026-05-21 18:42:15,429 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:15,434 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:42:15,438 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:15,439 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:15,439 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:15,583 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=all&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:42:15,584 | INFO | __main__ | Repo scan complete for kencopas/FDEProject | total_issues=19 | open_issues=9
+2026-05-21 18:42:15,641 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:16,110 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:42:16,111 | INFO | poll_iteration | Poll complete at 2026-05-21T22:42:16.111730+00:00 | campaigns=50 | over_threshold=10 | issues_created=0
+2026-05-21 18:42:16,282 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/11 "HTTP/1.1 200 OK"
+2026-05-21 18:42:16,303 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/13 "HTTP/1.1 200 OK"
+2026-05-21 18:42:16,369 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/17 "HTTP/1.1 200 OK"
+2026-05-21 18:42:16,376 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/14 "HTTP/1.1 200 OK"
+2026-05-21 18:42:16,396 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/15 "HTTP/1.1 200 OK"
+2026-05-21 18:42:16,435 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/18 "HTTP/1.1 200 OK"
+2026-05-21 18:42:16,436 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/12 "HTTP/1.1 200 OK"
+2026-05-21 18:42:16,481 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/16 "HTTP/1.1 200 OK"
+2026-05-21 18:42:16,599 | INFO | httpx | HTTP Request: PATCH https://api.github.com/repos/kencopas/FDEProject/issues/19 "HTTP/1.1 200 OK"
+2026-05-21 18:42:16,600 | INFO | __main__ | Closed issue #19
+2026-05-21 18:42:16,600 | INFO | __main__ | Closed issue #18
+2026-05-21 18:42:16,600 | INFO | __main__ | Closed issue #17
+2026-05-21 18:42:16,600 | INFO | __main__ | Closed issue #16
+2026-05-21 18:42:16,600 | INFO | __main__ | Closed issue #15
+2026-05-21 18:42:16,600 | INFO | __main__ | Closed issue #13
+2026-05-21 18:42:16,600 | INFO | __main__ | Closed issue #14
+2026-05-21 18:42:16,600 | INFO | __main__ | Closed issue #12
+2026-05-21 18:42:16,600 | INFO | __main__ | Closed issue #11
+2026-05-21 18:42:16,600 | INFO | __main__ | Done. Attempted=9 | Closed=9 | Failed=0
+2026-05-21 18:42:26,121 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:26,126 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:26,129 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:26,130 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:42:26,339 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:27,339 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:27,636 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:42:28,007 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:42:28,125 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:42:28,211 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:42:28,214 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:42:28,326 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:42:28,328 | INFO | poll_iteration | Created issue #20 for campaign 254eadee-67ff-e43e-6021-64be843a09dd (https://github.com/kencopas/FDEProject/issues/20)
+2026-05-21 18:42:28,328 | INFO | poll_iteration | Created issue #22 for campaign 39bf1c4b-3d15-68b3-830d-a185e11b4ae9 (https://github.com/kencopas/FDEProject/issues/22)
+2026-05-21 18:42:28,328 | INFO | poll_iteration | Created issue #24 for campaign dc4e3492-90bc-87b0-9fb0-7abc7d00e4cb (https://github.com/kencopas/FDEProject/issues/24)
+2026-05-21 18:42:28,329 | INFO | poll_iteration | Created issue #21 for campaign 22942f8b-2249-3458-0a2c-63a9bdddeba0 (https://github.com/kencopas/FDEProject/issues/21)
+2026-05-21 18:42:28,329 | INFO | poll_iteration | Created issue #23 for campaign 92212ac2-093c-30d8-8191-c10d3d54e9cd (https://github.com/kencopas/FDEProject/issues/23)
+2026-05-21 18:42:28,706 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:42:28,717 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:42:28,810 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:42:28,811 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:42:28,812 | INFO | poll_iteration | Created issue #28 for campaign 79492f99-641f-3e76-f0f9-5dfa28f60b2c (https://github.com/kencopas/FDEProject/issues/28)
+2026-05-21 18:42:28,812 | INFO | poll_iteration | Created issue #25 for campaign 5244d5d3-f476-ddc1-62fb-bb7fcf1789ad (https://github.com/kencopas/FDEProject/issues/25)
+2026-05-21 18:42:28,813 | INFO | poll_iteration | Created issue #27 for campaign 5a449dc1-0dcf-b2a1-1383-6b6d56fb82a3 (https://github.com/kencopas/FDEProject/issues/27)
+2026-05-21 18:42:28,813 | INFO | poll_iteration | Created issue #26 for campaign d89c0baf-a6d2-28ed-fb95-4f332b1501ed (https://github.com/kencopas/FDEProject/issues/26)
+2026-05-21 18:42:28,813 | INFO | poll_iteration | Poll complete at 2026-05-21T22:42:28.813084+00:00 | campaigns=50 | over_threshold=10 | issues_created=9
+2026-05-21 18:42:38,823 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:38,830 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:38,832 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:38,834 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:38,835 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:39,377 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:42:39,380 | INFO | poll_iteration | Poll complete at 2026-05-21T22:42:39.379979+00:00 | campaigns=50 | over_threshold=10 | issues_created=0
+2026-05-21 18:42:49,388 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:49,395 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:49,400 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:49,401 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:49,401 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:42:49,606 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:42:50,210 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:42:50,212 | INFO | poll_iteration | Poll complete at 2026-05-21T22:42:50.212455+00:00 | campaigns=50 | over_threshold=10 | issues_created=0
+2026-05-21 18:43:00,223 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:43:00,230 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:43:00,232 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:43:00,234 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:43:00,236 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:43:00,436 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:43:00,943 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:43:01,316 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:01,412 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:01,430 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:01,479 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:01,680 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:01,683 | INFO | poll_iteration | Created issue #29 for campaign 3b1155c3-260b-87f9-75d3-4a4d5a71f6e0 (https://github.com/kencopas/FDEProject/issues/29)
+2026-05-21 18:43:01,683 | INFO | poll_iteration | Created issue #33 for campaign c7c81db9-6bae-059b-2c17-73c6be116408 (https://github.com/kencopas/FDEProject/issues/33)
+2026-05-21 18:43:01,683 | INFO | poll_iteration | Created issue #32 for campaign 3b3814ab-fcd0-1342-0524-acb02e478f6a (https://github.com/kencopas/FDEProject/issues/32)
+2026-05-21 18:43:01,683 | INFO | poll_iteration | Created issue #30 for campaign 4c6d4af6-8044-d755-ef97-850f6d4cfdc8 (https://github.com/kencopas/FDEProject/issues/30)
+2026-05-21 18:43:01,683 | INFO | poll_iteration | Created issue #31 for campaign 3aad50d9-94a4-e8f6-7c4a-540bffd21e12 (https://github.com/kencopas/FDEProject/issues/31)
+2026-05-21 18:43:02,059 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:02,065 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:02,203 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:02,205 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:02,205 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:02,206 | INFO | poll_iteration | Created issue #38 for campaign 86dab404-70bc-1b00-5f26-3e03dbf87bde (https://github.com/kencopas/FDEProject/issues/38)
+2026-05-21 18:43:02,206 | INFO | poll_iteration | Created issue #35 for campaign d98b39e3-630c-cfa8-1509-2a1dd0241b95 (https://github.com/kencopas/FDEProject/issues/35)
+2026-05-21 18:43:02,206 | INFO | poll_iteration | Created issue #34 for campaign d1dc14cb-bead-11a7-1858-a1b08ac9ffdc (https://github.com/kencopas/FDEProject/issues/34)
+2026-05-21 18:43:02,206 | INFO | poll_iteration | Created issue #36 for campaign 442b3c24-8aa6-e4a0-3583-586e0575b72a (https://github.com/kencopas/FDEProject/issues/36)
+2026-05-21 18:43:02,206 | INFO | poll_iteration | Created issue #37 for campaign 9897766d-69f1-a6dc-1d5f-7880d71cabb1 (https://github.com/kencopas/FDEProject/issues/37)
+2026-05-21 18:43:02,589 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:02,600 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:02,621 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:02,729 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:02,738 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:02,740 | INFO | poll_iteration | Created issue #42 for campaign 0b504f74-7bb4-625d-5872-8107e5e388f7 (https://github.com/kencopas/FDEProject/issues/42)
+2026-05-21 18:43:02,740 | INFO | poll_iteration | Created issue #43 for campaign 63ca2935-8358-604a-6073-36f78ffa838c (https://github.com/kencopas/FDEProject/issues/43)
+2026-05-21 18:43:02,740 | INFO | poll_iteration | Created issue #40 for campaign 8637a7fc-daed-b4d0-fd05-30527a45e66a (https://github.com/kencopas/FDEProject/issues/40)
+2026-05-21 18:43:02,740 | INFO | poll_iteration | Created issue #39 for campaign bfddb81f-0de3-009f-02be-594e12934cbe (https://github.com/kencopas/FDEProject/issues/39)
+2026-05-21 18:43:02,740 | INFO | poll_iteration | Created issue #41 for campaign 1974cd48-490c-91f8-33b6-e13be664ce3f (https://github.com/kencopas/FDEProject/issues/41)
+2026-05-21 18:43:03,253 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:03,256 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:03,276 | INFO | httpx | HTTP Request: POST https://api.github.com/repos/kencopas/FDEProject/issues "HTTP/1.1 201 Created"
+2026-05-21 18:43:03,277 | INFO | poll_iteration | Created issue #44 for campaign 1b44eab9-5793-aee0-17c3-b17f9b01801a (https://github.com/kencopas/FDEProject/issues/44)
+2026-05-21 18:43:03,277 | INFO | poll_iteration | Created issue #45 for campaign fb886452-bad7-76cc-d831-d888a2c2761d (https://github.com/kencopas/FDEProject/issues/45)
+2026-05-21 18:43:03,277 | INFO | poll_iteration | Created issue #46 for campaign 62d88fb2-555c-00e8-04bb-ef0e91321536 (https://github.com/kencopas/FDEProject/issues/46)
+2026-05-21 18:43:03,277 | INFO | poll_iteration | Poll complete at 2026-05-21T22:43:03.277443+00:00 | campaigns=50 | over_threshold=30 | issues_created=18
+2026-05-21 18:43:13,289 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:43:13,497 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=1&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:43:13,502 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:43:13,505 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:43:13,507 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=5&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:43:13,507 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 500 Internal Server Error"
+2026-05-21 18:43:13,711 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=2&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:43:13,713 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=3&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:43:15,119 | INFO | httpx | HTTP Request: GET http://0.0.0.0:8080/campaigns?page=4&page_size=10 "HTTP/1.1 200 OK"
+2026-05-21 18:43:15,593 | INFO | httpx | HTTP Request: GET https://api.github.com/repos/kencopas/FDEProject/issues?state=open&per_page=100&page=1 "HTTP/1.1 200 OK"
+2026-05-21 18:43:15,596 | INFO | poll_iteration | Poll complete at 2026-05-21T22:43:15.596017+00:00 | campaigns=50 | over_threshold=30 | issues_created=0

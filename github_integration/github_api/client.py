@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from typing import Any
-from urllib import error, parse, request
+from urllib import parse
+
+import httpx
 
 DEFAULT_GITHUB_API_BASE_URL = "https://api.github.com"
 DEFAULT_GITHUB_API_VERSION = "2026-03-10"
@@ -50,8 +52,27 @@ class GitHubIssuesApiClient:
         self.api_version = api_version
         self.timeout = timeout
         self.user_agent = user_agent
+        self._http_client = httpx.AsyncClient(
+            base_url=self.base_url,
+            timeout=self.timeout,
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {self.token}",
+                "X-GitHub-Api-Version": self.api_version,
+                "User-Agent": self.user_agent,
+            },
+        )
 
-    def list_issues(
+    async def __aenter__(self) -> GitHubIssuesApiClient:
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        await self._http_client.aclose()
+
+    async def list_issues(
         self,
         owner: str,
         repo: str,
@@ -95,7 +116,7 @@ class GitHubIssuesApiClient:
         if page is not None:
             query["page"] = page
 
-        response = self._request(
+        response = await self._request(
             "GET",
             f"/repos/{self._q(owner)}/{self._q(repo)}/issues",
             query=query or None,
@@ -104,12 +125,14 @@ class GitHubIssuesApiClient:
             raise GitHubApiError("Unexpected list_issues response shape")
         return response
 
-    def get_issue(self, owner: str, repo: str, issue_number: int) -> dict[str, Any]:
+    async def get_issue(
+        self, owner: str, repo: str, issue_number: int
+    ) -> dict[str, Any]:
         """GET /repos/{owner}/{repo}/issues/{issue_number}"""
         self._validate_repo_identifiers(owner, repo)
         self._validate_issue_number(issue_number)
 
-        response = self._request(
+        response = await self._request(
             "GET",
             f"/repos/{self._q(owner)}/{self._q(repo)}/issues/{issue_number}",
         )
@@ -117,7 +140,7 @@ class GitHubIssuesApiClient:
             raise GitHubApiError("Unexpected get_issue response shape")
         return response
 
-    def create_issue(
+    async def create_issue(
         self,
         owner: str,
         repo: str,
@@ -146,7 +169,7 @@ class GitHubIssuesApiClient:
         if issue_type is not None:
             payload["type"] = issue_type
 
-        response = self._request(
+        response = await self._request(
             "POST",
             f"/repos/{self._q(owner)}/{self._q(repo)}/issues",
             json_body=payload,
@@ -155,7 +178,7 @@ class GitHubIssuesApiClient:
             raise GitHubApiError("Unexpected create_issue response shape")
         return response
 
-    def update_issue(
+    async def update_issue(
         self,
         owner: str,
         repo: str,
@@ -195,7 +218,7 @@ class GitHubIssuesApiClient:
         if not payload:
             raise ValueError("At least one field must be provided to update_issue")
 
-        response = self._request(
+        response = await self._request(
             "PATCH",
             f"/repos/{self._q(owner)}/{self._q(repo)}/issues/{issue_number}",
             json_body=payload,
@@ -204,7 +227,7 @@ class GitHubIssuesApiClient:
             raise GitHubApiError("Unexpected update_issue response shape")
         return response
 
-    def _request(
+    async def _request(
         self,
         method: str,
         path: str,
@@ -214,37 +237,30 @@ class GitHubIssuesApiClient:
     ) -> Any:
         url = self._build_url(path, query)
 
-        headers = {
-            "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {self.token}",
-            "X-GitHub-Api-Version": self.api_version,
-            "User-Agent": self.user_agent,
-        }
-
-        body: bytes | None = None
-        if json_body is not None:
-            body = json.dumps(json_body).encode("utf-8")
-            headers["Content-Type"] = "application/json"
-
-        req = request.Request(url=url, method=method, headers=headers, data=body)
-
         try:
-            with request.urlopen(req, timeout=self.timeout) as response:
-                raw = response.read().decode("utf-8")
-                if not raw.strip():
-                    return {}
-                return json.loads(raw)
+            response = await self._http_client.request(
+                method,
+                path,
+                params=query,
+                json=json_body,
+            )
+            response.raise_for_status()
 
-        except error.HTTPError as exc:
-            body_text = exc.read().decode("utf-8", errors="replace")
+            raw = response.text
+            if not raw.strip():
+                return {}
+            return json.loads(raw)
+
+        except httpx.HTTPStatusError as exc:
+            body_text = exc.response.text
             raise GitHubApiError(
                 message=f"GitHub API request failed: {method} {path}",
-                status_code=exc.code,
+                status_code=exc.response.status_code,
                 response_body=body_text,
             ) from exc
-        except error.URLError as exc:
+        except httpx.RequestError as exc:
             raise GitHubApiError(
-                message=f"Unable to reach GitHub API at {url}: {exc.reason}"
+                message=f"Unable to reach GitHub API at {url}: {exc}"
             ) from exc
         except json.JSONDecodeError as exc:
             raise GitHubApiError(

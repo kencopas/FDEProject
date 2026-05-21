@@ -54,7 +54,7 @@ def build_issue_body(
     )
 
 
-def list_open_issue_titles(
+async def list_open_issue_titles(
     github_client: GitHubIssuesApiClient, owner: str, repo: str
 ) -> set[str]:
     titles: set[str] = set()
@@ -62,7 +62,7 @@ def list_open_issue_titles(
     per_page = 100
 
     while True:
-        issues = github_client.list_issues(
+        issues = await github_client.list_issues(
             owner=owner,
             repo=repo,
             state="open",
