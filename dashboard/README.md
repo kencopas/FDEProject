@@ -1,150 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Campaign Dashboard Service
 
-## Getting Started
+Next.js dashboard for monitoring simulated campaign performance and drilling into campaign details.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+
+## Features
+
+- Campaign list with server-backed data loading
+- Filters and controls:
+  - Status filter (`all`, `active`, `paused`, `completed`)
+  - Search across campaign ID, name, and advertiser
+  - Sort field and sort direction
+  - Toggle to hide campaigns at or above 90% budget utilization
+- Portfolio metrics (budget, spend, impressions, CTR)
+- Simulation controls:
+  - Advance simulation day via Campaign API
+  - UI lock at day 5 (requires Campaign API restart to continue)
+- Campaign detail modal with on-demand detail fetch
+
+Main UI lives in `app/page.tsx`.
+
+## API Architecture
+
+The browser calls internal route handlers under `app/api/campaign/*`.
+Those handlers use `lib/campaign-api-client.ts` to call the external Campaign API.
+
+Internal routes:
+
+- `GET /api/campaign/health`
+- `POST /api/campaign/next-day`
+- `GET /api/campaign/campaigns`
+- `GET /api/campaign/campaigns/[campaignId]`
+- `GET /api/campaign/api-docs`
+
+Campaign API client responsibilities:
+
+- Reads `CAMPAIGN_API_BASE_URL` and optional `CAMPAIGN_API_KEY` from server env.
+- Forwards `x-api-key` on campaign endpoints.
+- Normalizes non-2xx responses into `CampaignApiError` with status and payload.
+
+## Resilience And Request Policy
+
+Client-side requests in `app/page.tsx` use:
+
+- Per-attempt timeout: 1 second
+- Retries: 3 (up to 4 attempts total)
+- Retry conditions:
+  - Timeout (`AbortError`)
+  - Network failures (`TypeError`)
+  - HTTP `408`, `429`, and `5xx`
+
+Campaign list loading fetches paginated responses sequentially and de-duplicates by campaign ID to avoid pagination drift issues.
+
+## Environment Variables
+
+- `CAMPAIGN_API_BASE_URL` (required)
+- `CAMPAIGN_API_KEY` (optional)
+
+Example:
+
+```env
+CAMPAIGN_API_BASE_URL=http://localhost:8000
+CAMPAIGN_API_KEY=
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Local Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+From `dashboard/`:
 
-## Run With Docker
+```bash
+npm install
+npm run dev
+```
 
-Build and start the dashboard container:
+Open `http://localhost:3000`.
+
+## Docker
+
+Start with Compose:
 
 ```bash
 docker compose up --build
 ```
 
-Or run detached:
+Run detached:
 
 ```bash
 docker compose up --build -d
 ```
 
-Stop the container:
+Stop:
 
 ```bash
 docker compose down
 ```
 
-The service is exposed at `http://localhost:3000`.
+Compose defaults:
 
-### Container Environment Variables
+- Dashboard exposed at `http://localhost:3000`
+- `CAMPAIGN_API_BASE_URL=http://host.docker.internal:8000`
 
-- `CAMPAIGN_API_BASE_URL` (default: `http://host.docker.internal:8000`)
-- `CAMPAIGN_API_KEY` (optional)
+## Useful Scripts
 
-Set these in your shell (or a `.env` file in `dashboard/`) before running `docker compose up`.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Campaign API Client
-
-This project includes a typed API client for the Campaign API documented in `../campaign_api_docs.md`.
-
-### Location
-
-- `lib/campaign-api-client.ts`
-
-### Environment Variables
-
-- `CAMPAIGN_API_BASE_URL` (required): Base URL of the Campaign API, for example `http://localhost:8000`
-- `CAMPAIGN_API_KEY` (optional): API key sent as `x-api-key` header for campaign endpoints
-
-### Usage Example
-
-```ts
-import { createCampaignApiClient } from "@/lib/campaign-api-client";
-
-const client = createCampaignApiClient();
-
-const health = await client.health();
-const campaignList = await client.listCampaigns({
-  page: 1,
-  pageSize: 10,
-  status: "active",
-});
-const campaign = await client.getCampaign(campaignList.campaigns[0].id);
-await client.nextDay();
-const docs = await client.apiDocs();
-```
-
-## Campaign Dashboard UI
-
-The home page in `app/page.tsx` is a campaign dashboard UI.
-
-It uses these API calls:
-
-- `GET /campaigns` with page, page_size, and status filters
-- `GET /campaigns/{campaign_id}` for campaign detail (triggered internally when a campaign card is clicked)
-
-### UX Behavior
-
-- Campaign cards are rendered from `GET /campaigns`.
-- Clicking a campaign card opens a modal with detailed campaign information.
-- There is no direct campaign ID search field in the UI.
-
-### Resilience
-
-- Every dashboard request uses a per-attempt timeout of 3 seconds.
-- Requests are retried automatically on transient failures.
-- Current retry policy in `app/page.tsx`:
-  - Retries: `3` (up to `4` total attempts including the initial attempt)
-  - Retries happen for timeouts, network errors, and retriable HTTP responses (`408`, `429`, and `5xx`)
-
-### Client-Side Validation
-
-Before `GET /campaigns` is called, input values are validated in the browser:
-
-- `page` must be an integer >= 1
-- `page_size` must be an integer between 1 and 10
-- `status` must be blank or one of:
-  - `active`
-  - `paused`
-  - `completed`
-
-### Metrics and Counts
-
-Top dashboard metrics are derived from the currently loaded `campaigns[]` list on the client:
-
-- Total Budget: sum of `campaign.budget`
-- Total Spend: sum of `campaign.spend`
-- Impressions: sum of `campaign.impressions`
-- Portfolio CTR: `(sum(clicks) / sum(impressions)) * 100`
-
-Count display in the campaign list header:
-
-- `shown` = number of cards rendered on the current response page
-- `total` = normalized API `total` value from the list response
-
-### How It Works
-
-Browser requests go to internal Next.js route handlers under `app/api/campaign/*`.
-Those handlers call the typed client in `lib/campaign-api-client.ts`, which keeps the
-API base URL and optional API key on the server side.
+- `npm run dev`: start dev server
+- `npm run build`: production build
+- `npm run start`: run production server
+- `npm run lint`: ESLint

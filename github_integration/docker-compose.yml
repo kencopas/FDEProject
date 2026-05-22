@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file:
-      - .env
+      - ../.env
     environment:
       # In Docker, localhost points to the container itself.
       # Override this if your Campaign API is hosted elsewhere.

@@ -10,6 +10,8 @@ from poll_iteration import run_poll_iteration
 from github_api.client import GitHubApiError, GitHubIssuesApiClient
 from campaign_api.client import CampaignApiError, CampaignApiClient
 
+# from campaign_api.service import get_api_key
+
 POLL_INTERVAL_SECONDS = 10
 BUDGET_ALERT_THRESHOLD = 0.9
 DEFAULT_GITHUB_OWNER = "kencopas"
@@ -42,6 +44,14 @@ async def main() -> None:
         timeout=github_settings.github_api_timeout,
         user_agent=github_settings.github_api_user_agent,
     )
+
+    if not campaign_settings.campaign_api_key:
+        logger.critical(
+            "\033[31mCampaign API key is missing\033[0m. Please refer to the following docs:"
+        )
+        docs = await campaign_client.api_docs()
+        logger.critical(docs)
+        exit(0)
 
     owner = os.getenv("GITHUB_REPO_OWNER", DEFAULT_GITHUB_OWNER)
     repo = os.getenv("GITHUB_REPO_NAME", DEFAULT_GITHUB_REPO)

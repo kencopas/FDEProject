@@ -53,13 +53,6 @@ def get_logger(name: str) -> logging.Logger:
 class CampaignApiSettings(BaseSettings):
     """Application settings loaded from environment variables and .env."""
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore",
-    )
-
     campaign_api_base_url: HttpUrl = Field(
         default="http://localhost:8000",
         description="Base URL for the Campaign API.",
@@ -83,13 +76,6 @@ class CampaignApiSettings(BaseSettings):
 
 class GitHubApiSettings(BaseSettings):
     """GitHub REST API settings loaded from environment variables and .env."""
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore",
-    )
 
     github_token: str = Field(
         ...,

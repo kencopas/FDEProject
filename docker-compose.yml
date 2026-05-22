@@ -9,6 +9,8 @@ services:
     build:
       context: ./dashboard
       dockerfile: Dockerfile
+    env_file:
+      - ./.env
     ports:
       - "3000:3000"
     environment:
@@ -23,11 +25,10 @@ services:
       context: ./github_integration
       dockerfile: Dockerfile
     env_file:
-      - ./github_integration/.env
+      - ./.env
     environment:
       CAMPAIGN_API_BASE_URL: ${CAMPAIGN_API_BASE_URL:-http://campaign-api:8080}
     volumes:
       - ./github_integration/logs:/app/logs
     depends_on:
       - campaign-api
-    restart: unless-stopped

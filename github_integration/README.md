@@ -1,46 +1,59 @@
-# GitHub Integration
+# GitHub Integration Service
 
-This project now includes a reusable Campaign API client in
-`campaign_api_client.py`.
+This service polls the Campaign API and opens GitHub issues when campaign spend crosses a budget utilization threshold.
 
-It also includes a reusable GitHub Issues REST API client in
-`github_issues_api_client.py`.
+## What It Does
 
-Configuration is handled by a `pydantic-settings` class in
-`settings.py`, which automatically loads values from environment
-variables and an optional `.env` file in this folder.
+- Polls Campaign API every 10 seconds.
+- Fetches campaigns and identifies those at or above 90% budget utilization.
+- Lists open GitHub issues and skips creating duplicates (title-based dedupe).
+- Creates new GitHub issues in batches with labels: `campaign`, `budget-alert`.
+- Logs to console and to `logs/github_integration.log`.
 
-## Available Client Methods
+Current behavior is implemented in:
 
-- `health()` -> `GET /health`
-- `next_day()` -> `POST /next-day`
-- `list_campaigns(page=1, page_size=10, status=None, api_key=None)` -> `GET /campaigns`
-- `get_campaign(campaign_id, api_key=None)` -> `GET /campaigns/{campaign_id}`
-- `api_docs()` -> `GET /api-docs`
+- `main.py`
+- `poll_iteration.py`
+- `campaign_api/service.py`
+- `github_api/service.py`
 
-## GitHub Issues Client Methods
+## Project Structure
 
-- `list_issues(owner, repo, ...)` -> `GET /repos/{owner}/{repo}/issues`
-- `get_issue(owner, repo, issue_number)` -> `GET /repos/{owner}/{repo}/issues/{issue_number}`
-- `create_issue(owner, repo, title=..., ...)` -> `POST /repos/{owner}/{repo}/issues`
-- `update_issue(owner, repo, issue_number, ...)` -> `PATCH /repos/{owner}/{repo}/issues/{issue_number}`
+- `campaign_api/client.py`: async Campaign API client (`/health`, `/next-day`, `/campaigns`, `/campaigns/{id}`, `/api-docs`)
+- `campaign_api/service.py`: campaign pagination/dedupe and threshold logic
+- `github_api/client.py`: async GitHub Issues REST client
+- `github_api/service.py`: issue title/body construction and open-title lookup
+- `poll_iteration.py`: one monitoring cycle
+- `main.py`: continuous poll loop and client lifecycle management
+- `scripts/close_all_issues.py`: utility script to close all open issues in the configured repo
+- `config.py`: environment configuration and logging setup
 
-Authentication uses:
+## Requirements
 
-- `Authorization: Bearer <token>`
-- `Accept: application/vnd.github+json`
-- `X-GitHub-Api-Version: 2026-03-10`
+- Python 3.12+
+- A reachable Campaign API
+- A GitHub token with issue read/write permissions for the target repo
 
-## Usage
+Install dependencies:
 
-Set environment variables:
+```bash
+pip install -r requirements.txt
+```
 
-- `CAMPAIGN_API_BASE_URL` (default: `http://localhost:8000`, must be a valid URL)
+## Configuration
+
+Settings are loaded from environment variables and optional `.env` in this directory.
+
+### Campaign API
+
+- `CAMPAIGN_API_BASE_URL` (default: `http://localhost:8000`)
 - `CAMPAIGN_API_KEY` (optional)
-- `CAMPAIGN_API_TIMEOUT` (default: `10.0`, must be > 0 and <= 120)
-- `CAMPAIGN_API_USER_AGENT` (default: `github-integration/0.1`, cannot be empty)
+- `CAMPAIGN_API_TIMEOUT` (default: `1.0`)
+- `CAMPAIGN_API_USER_AGENT` (default: `github-integration/0.1`)
 
-For the GitHub client:
+Note: request timeout for Campaign API calls is capped to 1.0 second in the client.
+
+### GitHub API
 
 - `GITHUB_TOKEN` (required)
 - `GITHUB_API_BASE_URL` (default: `https://api.github.com`)
@@ -48,95 +61,83 @@ For the GitHub client:
 - `GITHUB_API_TIMEOUT` (default: `10.0`)
 - `GITHUB_API_USER_AGENT` (default: `github-integration/0.1`)
 
-You can also create a `.env` file:
+### Target Repository
+
+- `GITHUB_REPO_OWNER` (default: `kencopas`)
+- `GITHUB_REPO_NAME` (default: `FDEProject`)
+
+### Logging
+
+- `LOG_LEVEL` (default: `INFO`)
+- `LOG_FILE_PATH` (default: `logs/github_integration.log`)
+
+Example `.env`:
 
 ```env
 CAMPAIGN_API_BASE_URL=http://localhost:8000
 CAMPAIGN_API_KEY=
-CAMPAIGN_API_TIMEOUT=10
+CAMPAIGN_API_TIMEOUT=1.0
 CAMPAIGN_API_USER_AGENT=github-integration/0.1
+
 GITHUB_TOKEN=
 GITHUB_API_BASE_URL=https://api.github.com
 GITHUB_API_VERSION=2026-03-10
-GITHUB_API_TIMEOUT=10
+GITHUB_API_TIMEOUT=10.0
 GITHUB_API_USER_AGENT=github-integration/0.1
+
+GITHUB_REPO_OWNER=kencopas
+GITHUB_REPO_NAME=FDEProject
+
+LOG_LEVEL=INFO
+LOG_FILE_PATH=logs/github_integration.log
 ```
 
-Run the example:
+## Run Locally
+
+From `github_integration/`:
 
 ```bash
 python main.py
 ```
 
-Run GitHub Issues client validation against `kencopas/FDEProject`:
+The process runs until interrupted and executes one poll iteration every 10 seconds.
+
+## Utility Script
+
+Close all open issues in the configured repository:
 
 ```bash
-python test_github_issues_client.py
+python scripts/close_all_issues.py
 ```
 
-This script validates `list_issues`, `create_issue`, `get_issue`, and `update_issue`.
-It creates a temporary issue and closes it as part of the test.
+The script skips pull requests and closes issues in batches.
 
-Or use the client directly:
+## Docker
 
-```python
-from campaign_api_client import CampaignApiClient
-
-client = CampaignApiClient(base_url="http://localhost:8000", api_key="optional-key")
-campaigns = client.list_campaigns(page=1, page_size=10)
-print(campaigns)
-
-from github_issues_api_client import GitHubIssuesApiClient
-
-gh = GitHubIssuesApiClient(token="ghp_your_token")
-
-# List issues
-issues = gh.list_issues("OWNER", "REPO", state="open", per_page=10, page=1)
-
-# Create an issue
-created = gh.create_issue("OWNER", "REPO", title="Bug report", body="Details")
-
-# Get one issue
-issue = gh.get_issue("OWNER", "REPO", issue_number=created["number"])
-
-# Update an issue
-updated = gh.update_issue(
-	"OWNER",
-	"REPO",
-	issue_number=issue["number"],
-	state="closed",
-	state_reason="completed",
-)
-
-print(updated["state"])
-```
-
-## Containerized Usage
-
-Build the image:
+Build image:
 
 ```bash
 docker build -t github-integration:latest .
 ```
 
-Run with your `.env` file:
+Run container:
 
 ```bash
 docker run --rm \
-	--env-file .env \
-	-e CAMPAIGN_API_BASE_URL=http://host.docker.internal:8000 \
-	-v "$(pwd)/logs:/app/logs" \
-	github-integration:latest
+  --env-file .env \
+  -e CAMPAIGN_API_BASE_URL=http://host.docker.internal:8000 \
+  -v "$(pwd)/logs:/app/logs" \
+  github-integration:latest
 ```
 
-Or run with Docker Compose:
+Or with Compose:
 
 ```bash
 docker compose up --build
 ```
 
-Notes:
+## Notes
 
-- Keep `GITHUB_TOKEN` in `.env`.
-- If your Campaign API runs on your Mac host, use `http://host.docker.internal:8000`.
-- If your Campaign API runs in another container/network, set `CAMPAIGN_API_BASE_URL` to that service URL.
+- Existing open issue titles are used to avoid duplicate alerts.
+- Issue title format: `[Campaign Budget Alert] <campaign_id> exceeded 90% budget`.
+- `POLL_INTERVAL_SECONDS` and `BUDGET_ALERT_THRESHOLD` are currently fixed constants in `main.py`.
