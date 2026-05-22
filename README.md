@@ -41,8 +41,8 @@ cd FDEProject
 
 ```env
 GITHUB_TOKEN=<your_token>
-GITHUB_REPO_OWNER=kencopas
-GITHUB_REPO_NAME=FDEProject
+GITHUB_REPO_OWNER=<your-username>
+GITHUB_REPO_NAME=<your-repo-name>
 
 GITHUB_API_BASE_URL=https://api.github.com
 GITHUB_API_VERSION=2026-03-10
