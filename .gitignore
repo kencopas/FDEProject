@@ -83,3 +83,5 @@ pip-wheel-metadata/
 # Uncomment if these are generated in your repo
 # uploads/
 # media/
+
+project.md

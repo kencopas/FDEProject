@@ -38,7 +38,7 @@ const initialDashboardState: DashboardState = {
 };
 
 const REQUEST_TIMEOUT_MS = 1000;
-const REQUEST_RETRIES = 3;
+const REQUEST_RETRIES = 5;
 const MAX_SIMULATION_DAY = 5;
 const CAMPAIGNS_PER_PAGE = 10;
 const VALID_STATUSES = ["active", "paused", "completed"] as const;

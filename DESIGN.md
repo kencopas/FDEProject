@@ -8,6 +8,10 @@ This project is split into three services:
 - `dashboard` (Next.js): browser UI for campaign monitoring and simulation control.
 - `github-integration` (Python async worker): scheduled poller that opens GitHub issues for high-spend campaigns.
 
+### Architecture
+
+![](./docs/architecture.drawio.svg)
+
 ### Data Flow
 
 1. Dashboard requests go to internal Next.js route handlers under `app/api/campaign/*`.

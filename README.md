@@ -33,7 +33,7 @@ These steps run the complete system from a fresh clone.
 1. Clone and enter the repo:
 
 ```bash
-git clone <your-repo-url>
+git clone https://www.github.com/kencopas/FDEProject.git
 cd FDEProject
 ```
 
@@ -41,8 +41,8 @@ cd FDEProject
 
 ```env
 GITHUB_TOKEN=<your_token>
-GITHUB_REPO_OWNER=<your_github_org_or_user>
-GITHUB_REPO_NAME=<your_repo_name>
+GITHUB_REPO_OWNER=kencopas
+GITHUB_REPO_NAME=FDEProject
 
 GITHUB_API_BASE_URL=https://api.github.com
 GITHUB_API_VERSION=2026-03-10
@@ -51,7 +51,7 @@ GITHUB_API_USER_AGENT=github-integration/0.1
 
 CAMPAIGN_API_TIMEOUT=1.0
 CAMPAIGN_API_USER_AGENT=github-integration/0.1
-CAMPAIGN_API_KEY=
+CAMPAIGN_API_KEY= # This can be found at http://localhost:8080/api-docs
 
 LOG_LEVEL=INFO
 LOG_FILE_PATH=logs/github_integration.log
@@ -65,11 +65,11 @@ docker compose up --build
 
 4. Open the dashboard:
 
-- `http://localhost:3000`
+- [`http://localhost:3000`](http://localhost:3000)
 
 5. Confirm the Campaign API is running:
 
-- `http://localhost:8080/health`
+- [`http://localhost:8080/health`](http://localhost:8080/health)
 
 6. Check integration logs:
 
@@ -84,6 +84,8 @@ docker compose logs -f github-integration
 - GitHub integration creates issues in the configured repo for campaigns over 90% budget (deduped by title).
 
 ## Run Services Individually (Optional)
+
+Running the services individually may require creating localized .env files per service. The alternative is running specific services individually via the root-level `docker-compose.yml`.
 
 ### Campaign API only
 
