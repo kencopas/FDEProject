@@ -35,6 +35,8 @@ async def run_poll_iteration(
     open_titles = await list_open_issue_titles(github_client, owner, repo)
     created_count = 0
 
+    logger.info(f"Number of campaigns: {len(campaigns)}")
+
     to_create: list[tuple[str, Campaign, float]] = []
 
     for campaign, utilization in over_threshold:
@@ -42,6 +44,7 @@ async def run_poll_iteration(
         if title in open_titles:
             logger.warning(f"Skipping campaign issue title: {title}")
             continue
+        logger.info(f"Creating campaign issue title: {title}")
         open_titles.add(title)
         to_create.append((title, campaign, utilization))
 

@@ -97,9 +97,11 @@ export class CampaignApiClient {
     const search = query.toString();
     const path = search ? `/campaigns?${search}` : "/campaigns";
 
-    return this.request<CampaignListResponse>(path, "GET", {
+    const response = await this.request<CampaignListResponse>(path, "GET", {
       includeApiKey: true,
     });
+
+    return response;
   }
 
   async getCampaign(campaignId: string): Promise<Campaign> {

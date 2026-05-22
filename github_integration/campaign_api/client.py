@@ -133,7 +133,8 @@ class CampaignApiClient:
             "GET", "/campaigns", query=query, api_key=api_key
         )
         try:
-            return CampaignListResponse.model_validate(response)
+            response = CampaignListResponse.model_validate(response)
+            return response
         except ValidationError as exc:
             raise CampaignApiError(
                 message="Campaign API returned invalid response for GET /campaigns",
