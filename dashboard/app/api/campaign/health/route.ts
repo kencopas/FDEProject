@@ -11,6 +11,15 @@ export async function GET() {
     const data = await client.health();
     return NextResponse.json(data);
   } catch (error) {
+    console.error("[campaign-route] GET /api/campaign/health failed", {
+      error:
+        error instanceof Error
+          ? {
+              name: error.name,
+              message: error.message,
+            }
+          : error,
+    });
     return toErrorResponse(error);
   }
 }

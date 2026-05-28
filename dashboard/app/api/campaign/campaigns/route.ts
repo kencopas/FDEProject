@@ -22,6 +22,18 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
+    console.error("[campaign-route] GET /api/campaign/campaigns failed", {
+      page: request.nextUrl.searchParams.get("page"),
+      pageSize: request.nextUrl.searchParams.get("page_size"),
+      status: request.nextUrl.searchParams.get("status"),
+      error:
+        error instanceof Error
+          ? {
+              name: error.name,
+              message: error.message,
+            }
+          : error,
+    });
     return toErrorResponse(error);
   }
 }

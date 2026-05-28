@@ -16,6 +16,16 @@ export async function GET() {
       },
     });
   } catch (error) {
+    console.error("[campaign-route] GET /api/campaign/api-docs failed", {
+      error:
+        error instanceof Error
+          ? {
+              name: error.name,
+              message: error.message,
+            }
+          : error,
+    });
+
     if (error instanceof CampaignApiError) {
       return NextResponse.json(
         {

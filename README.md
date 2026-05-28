@@ -30,6 +30,12 @@ FDEProject is a multi-service project with:
 
 These steps run the complete system from a fresh clone.
 
+0. Create GitHub PAT
+
+If you do not already have a GitHub personal access token, go to [https://www.github.com](https://www.github.com) and sign in. Click your profile picture and navigate to Settings > Developer Settings > Personal access tokens > Fine-grained tokens > Generate new token.
+
+Give your token a name, access only to the repositories you would like, and then click "Add permissions" and select Issues and Metadata from the drop-down. Ensure that Metadata is read-only and Issues is read-and-write. Then click "Generate token" and save it somewhere secure and accessible.
+
 1. Clone and enter the repo:
 
 ```bash
@@ -119,6 +125,15 @@ Ensure the root `.env` exists and points to a reachable Campaign API.
 ## Stopping The Project
 
 ```bash
+docker compose down
+```
+
+## Issue Cleanup (testing)
+
+When testing and creating issues in bulk, here is how you can close all issues present in the repository. **Only do this if you are sure**.
+
+```bash
+docker compose run github-integration python -m scripts.close_all_issues
 docker compose down
 ```
 

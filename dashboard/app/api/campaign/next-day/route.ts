@@ -9,8 +9,22 @@ export async function POST() {
   try {
     const client = createCampaignApiClient();
     const data = await client.nextDay();
+
+    console.info(
+      "[campaign-route] POST /api/campaign/next-day triggered successfully",
+    );
+
     return NextResponse.json(data);
   } catch (error) {
+    console.error("[campaign-route] POST /api/campaign/next-day failed", {
+      error:
+        error instanceof Error
+          ? {
+              name: error.name,
+              message: error.message,
+            }
+          : error,
+    });
     return toErrorResponse(error);
   }
 }

@@ -130,6 +130,11 @@ export class CampaignApiClient {
     });
 
     if (!response.ok) {
+      console.error("[campaign-api-client] Request failed", {
+        method,
+        path,
+        status: response.status,
+      });
       throw await this.toApiError(response);
     }
 
@@ -143,6 +148,11 @@ export class CampaignApiClient {
     });
 
     if (!response.ok) {
+      console.error("[campaign-api-client] Request failed", {
+        method,
+        path,
+        status: response.status,
+      });
       throw await this.toApiError(response);
     }
 
